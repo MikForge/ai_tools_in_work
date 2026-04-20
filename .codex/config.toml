@@ -1,0 +1,6 @@
+# Repository-scoped Codex configuration.
+# Add overrides here when this project needs different settings than your user config.
+# Example settings:
+# model = "gpt-5.4"
+# approval_policy = "on-request"
+# sandbox_mode = "workspace-write"
