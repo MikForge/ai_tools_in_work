@@ -3,7 +3,7 @@
 # This script creates symbolic links on Unix-like systems.
 
 TARGET_DIR=".agents/skills"
-LINK_DIR=".codex/skills"
+LINK_DIR=".claude/skills"
 
 # Check if .agents/skills exists
 if [ ! -d "$TARGET_DIR" ]; then
@@ -11,9 +11,9 @@ if [ ! -d "$TARGET_DIR" ]; then
     exit 1
 fi
 
-# Create .codex directory if it doesn't exist
-if [ ! -d ".codex" ]; then
-    mkdir -p ".codex"
+# Create .claude directory if it doesn't exist
+if [ ! -d ".claude" ]; then
+    mkdir -p ".claude"
 fi
 
 # Check if link already exists
@@ -33,4 +33,4 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Symbolic link created successfully."
-echo "You can now access skills via both .agents/skills and .codex/skills"
+echo "You can now access skills via both .agents/skills and .claude/skills"

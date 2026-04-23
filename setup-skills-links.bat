@@ -3,7 +3,7 @@ REM Setup symlinks from .codex/skills to .agents/skills
 REM This script creates directory junctions on Windows.
 
 set "TARGET_DIR=.agents\skills"
-set "LINK_DIR=.codex\skills"
+set "LINK_DIR=.claude\skills"
 
 REM Check if .agents/skills exists
 if not exist "%TARGET_DIR%" (
@@ -11,8 +11,8 @@ if not exist "%TARGET_DIR%" (
     exit /b 1
 )
 
-REM Create .codex directory if it doesn't exist
-if not exist ".codex" mkdir ".codex"
+REM Create .claude directory if it doesn't exist
+if not exist ".claude" mkdir ".claude"
 
 REM Check if link already exists
 if exist "%LINK_DIR%" (
@@ -31,4 +31,4 @@ if errorlevel 1 (
 )
 
 echo Junction created successfully.
-echo You can now access skills via both .agents\skills and .codex\skills
+echo You can now access skills via both .agents\skills and .claude\skills
