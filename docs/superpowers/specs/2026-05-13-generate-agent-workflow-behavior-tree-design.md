@@ -2,18 +2,18 @@
 
 ## 背景
 
-`agent-engineering-pipeline` 当前承担的是 workflow 生成器职责：读取用户提供的内容，生成一个最小 agent workflow，不执行 workflow 本身。
+本设计定义一个全新的 skill：`generate-agent-workflow`。它读取用户提供的想法、需求、笔记、流程描述或粗略 spec，生成一个最小 agent workflow，不执行 workflow 本身。
 
-现有微内核方案把入口、engine 和 stages 拆开，熵管理较好，但生成形态仍以线性 workflow、轻量 `on_failure` / `on_condition` 标注为主。根据 `docs/superpowers/agent-pipeline-architecture-comparison.md` 的评估，行为树在 Harness Engineering 维度上得分最高，尤其适合表达顺序约束、失败降级、条件上下文注入，以及 Orchestrator / Worker 分离。
+根据 `docs/superpowers/agent-pipeline-architecture-comparison.md` 的评估，行为树在 Harness Engineering 维度上得分最高，尤其适合表达顺序约束、失败降级、条件上下文注入，以及 Orchestrator / Worker 分离。
 
-本设计将 skill 语义收敛为：**根据用户提供的内容生成一个 agent workflow**。建议后续实现时将 skill 名从 `agent-engineering-pipeline` 迁移为 `generate-agent-workflow`；如果为了兼容暂不改目录名，文档和输出契约仍应使用 workflow 作为用户可见术语。行为树是该 workflow 的默认结构表达，微内核式文件组织可以保留，但它服务于 workflow 生成，而不是在多种 workflow 形态之间摇摆。
+`generate-agent-workflow` 是独立新建的 workflow generator，不基于已有 skill 改造。行为树是该 workflow 的默认结构表达，文件组织服务于 workflow 生成本身。
 
 ## 目标
 
 - 明确该 skill 的核心产物是一个 workflow。
 - 明确用户应该如何输入内容、名称、路径和约束。
 - 明确生成出来的 workflow 要回答什么问题。
-- 将默认 workflow 表达从线性列表改为行为树。
+- 默认使用行为树表达 workflow。
 - 用少量稳定原语表达 agent workflow：`Sequence`、`Fallback`、`Condition`、`Stage`。
 - 让失败、重试、降级、人工确认路径成为一等结构，而不是附属说明。
 - 保持 skill 是生成 workflow 的 generator，不是 executor。
@@ -25,6 +25,7 @@
 - 不实现真实行为树运行时。
 - 不引入脚本、CLI、YAML parser 或自动验证器。
 - 不把行为树扩展成完整游戏 AI 语义。
+- 不改造、迁移或兼容已有 workflow / pipeline skill。
 - 不生成过深、过细、难读的控制树。
 - 不执行生成出来的 workflow。
 
@@ -192,7 +193,7 @@ Then:
 
 ## Skill 文件结构
 
-建议保留当前微内核文件组织，但调整职责：
+建议新建以下文件组织：
 
 ```text
 .agents/skills/generate-agent-workflow/
@@ -211,7 +212,7 @@ Then:
     04-verify-output.zh-CN.md
 ```
 
-`02-select-pipeline-shape` 应改名为 `02-map-to-behavior-tree`，因为不再选择线性、标注或行为树三种形态。shape selection 退化为行为树内部节点选择。
+新建 `02-map-to-behavior-tree.md`，专门把用户意图映射为行为树节点。这个 skill 不在多种 workflow 形态之间选择；shape decision 只发生在行为树内部节点选择上。
 
 ## 文件职责
 
@@ -382,4 +383,4 @@ Expected:
 - `Fallback` 和 `Condition` 被用于真实控制流，而不是装饰性文本。
 - 简单输入仍得到简单 `Sequence`，不会过度设计。
 - skill 文件保持短小、可发现、双语同步。
-- 验证记录能证明新规则覆盖旧 microkernel 的主要失败风险。
+- 验证记录能证明输入契约、目标提取、失败路径和条件路径都被正确保留。
