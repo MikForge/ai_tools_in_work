@@ -2,18 +2,19 @@
 
 ## 背景
 
-`agent-engineering-pipeline` 当前是一个 workflow generator：读取用户提供的内容，输出一个最小 agent workflow，不执行 workflow 本身。
+`agent-engineering-pipeline` 当前承担的是 workflow 生成器职责：读取用户提供的内容，生成一个最小 agent workflow，不执行 workflow 本身。
 
 现有微内核方案把入口、engine 和 stages 拆开，熵管理较好，但生成形态仍以线性 workflow、轻量 `on_failure` / `on_condition` 标注为主。根据 `docs/superpowers/agent-pipeline-architecture-comparison.md` 的评估，行为树在 Harness Engineering 维度上得分最高，尤其适合表达顺序约束、失败降级、条件上下文注入，以及 Orchestrator / Worker 分离。
 
-本设计将 skill 的生成目标改为 **行为树格式的 workflow**。建议后续实现时将 skill 名从 `agent-engineering-pipeline` 迁移为 `agent-engineering-workflow`；如果为了兼容暂不改目录名，文档和输出契约仍应使用 workflow 作为用户可见术语。微内核式文件组织可以保留，但它服务于行为树生成，而不是在多种 workflow 形态之间摇摆。
+本设计将 skill 语义收敛为：**根据用户提供的内容生成一个 agent workflow**。建议后续实现时将 skill 名从 `agent-engineering-pipeline` 迁移为 `agent-engineering-workflow`；如果为了兼容暂不改目录名，文档和输出契约仍应使用 workflow 作为用户可见术语。行为树是该 workflow 的默认结构表达，微内核式文件组织可以保留，但它服务于 workflow 生成，而不是在多种 workflow 形态之间摇摆。
 
 ## 目标
 
+- 明确该 skill 的核心产物是一个 workflow。
 - 将默认 workflow 表达从线性列表改为行为树。
 - 用少量稳定原语表达 agent workflow：`Sequence`、`Fallback`、`Condition`、`Stage`。
 - 让失败、重试、降级、人工确认路径成为一等结构，而不是附属说明。
-- 保持 skill 是 workflow generator，不是 executor。
+- 保持 skill 是生成 workflow 的 generator，不是 executor。
 - 保持 SKILL.md 简洁，详细生成规则放入 engine 和 stage 文件。
 - 保留中英文文件同步要求。
 
@@ -40,7 +41,7 @@
 
 ## 输出契约
 
-最终响应保持当前 skill 的路径契约，但 workflow 内容改为行为树。
+最终响应生成一个 workflow，并用行为树表达 workflow 内容。
 
 ```text
 Workflow 路径：{skillpath}/{workflowname}
@@ -56,8 +57,8 @@ Sequence
       Purpose: Load only context required for the requested workflow.
 - Fallback
   - Sequence
-    - Stage: Generate Primary Workflow
-      Purpose: Produce the smallest behavior tree workflow that satisfies the request.
+    - Stage: Generate Workflow
+      Purpose: Produce the smallest workflow that satisfies the request.
     - Stage: Verify Workflow
       Purpose: Check path, minimality, and failure handling.
   - Stage: Escalate Uncertainty
@@ -66,7 +67,7 @@ Sequence
 
 如果用户提供具体路径，使用用户路径。否则使用 `{skillpath}/{workflowname}`。
 
-除非用户明确要求解释，最终回答只包含 workflow 路径和行为树 workflow。
+除非用户明确要求解释，最终回答只包含 workflow 路径和生成的 workflow。
 
 ## 生成规则
 
@@ -155,7 +156,7 @@ Then:
 入口文件只负责发现和边界：
 
 - 说明何时使用。
-- 说明该 skill 生成行为树 workflow。
+- 说明该 skill 根据用户内容生成一个 workflow。
 - 强调只生成，不执行。
 - 指向 `engine.md`。
 - 给出输入和输出格式。
@@ -166,10 +167,10 @@ engine 定义稳定编排：
 
 1. 读取用户内容。
 2. 按数字顺序使用 stage 指令。
-3. 生成最小行为树。
+3. 生成一个最小 workflow，默认使用行为树结构表达。
 4. 不执行生成的 workflow。
 5. 验证输出契约。
-6. 除非用户要求解释，否则最终响应只输出路径和行为树。
+6. 除非用户要求解释，否则最终响应只输出路径和 workflow。
 
 ### stages/01-parse-intent.md
 
@@ -282,12 +283,13 @@ Prompt:
 
 Expected:
 
-- 只生成行为树。
+- 只生成 workflow。
 - 不执行第一步。
 
 ## 成功标准
 
-- `agent-engineering-workflow` 默认输出行为树 workflow。
+- `agent-engineering-workflow` 的语义是根据用户内容生成一个 workflow。
+- 默认输出使用行为树结构表达 workflow。
 - `Fallback` 和 `Condition` 被用于真实控制流，而不是装饰性文本。
 - 简单输入仍得到简单 `Sequence`，不会过度设计。
 - skill 文件保持短小、可发现、双语同步。
