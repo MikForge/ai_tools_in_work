@@ -11,6 +11,8 @@
 ## 目标
 
 - 明确该 skill 的核心产物是一个 workflow。
+- 明确用户应该如何输入内容、名称、路径和约束。
+- 明确生成出来的 workflow 要回答什么问题。
 - 将默认 workflow 表达从线性列表改为行为树。
 - 用少量稳定原语表达 agent workflow：`Sequence`、`Fallback`、`Condition`、`Stage`。
 - 让失败、重试、降级、人工确认路径成为一等结构，而不是附属说明。
@@ -25,6 +27,65 @@
 - 不把行为树扩展成完整游戏 AI 语义。
 - 不生成过深、过细、难读的控制树。
 - 不执行生成出来的 workflow。
+
+## Skill Goal
+
+`generate-agent-workflow` 的目标是把用户给出的想法、需求、笔记、流程描述或粗略 spec 转成 **一个 agent 可遵循的 workflow**。
+
+生成的 workflow 必须回答：
+
+- 这个 workflow 要达成什么目标。
+- 用户输入会触发什么工作阶段。
+- agent 应按什么顺序工作。
+- 哪些上下文只在需要时加载。
+- 失败、重试、降级或人工确认时怎么走。
+- 最终如何验证 workflow 输出是否满足请求。
+
+这个 skill 只生成 workflow。它不执行 workflow，不写实现计划，不改代码，也不替用户跑任何 workflow stage。
+
+## Input Contract
+
+用户输入必须包含一段要转成 workflow 的内容。名称、路径、约束、失败路径和条件路径都是可选信息；提供得越具体，生成的 workflow 越稳定。
+
+| 字段 | 是否必需 | 作用 |
+|---|---|---|
+| 内容 | 必需 | 要转换成 workflow 的想法、需求、笔记、流程或粗略 spec。 |
+| Workflow 名称 | 可选 | 生成 workflow 的短名称；未提供时从内容中推断。 |
+| Workflow 路径 | 可选 | 最终输出里的 workflow 路径；未提供时使用 `{skillpath}/{workflowname}`。 |
+| 约束 | 可选 | 限制 workflow 范围，例如只生成、不执行、不要读仓库、必须有人审查。 |
+| 失败路径 | 可选 | 测试失败、信息不足、连续失败、需要升级时的处理方式。 |
+| 条件路径 | 可选 | 只有满足某条件才执行的阶段，例如需要代码上下文时才读文件。 |
+
+### 最小输入
+
+```text
+生成一个 agent workflow：
+
+<要转换的内容>
+```
+
+### 带名称和路径
+
+```text
+Workflow 名称：research-synthesis
+Workflow 路径：.agents/skills/generate-agent-workflow/workflows/research-synthesis
+
+内容：
+整理研究资料，提炼结论，生成行动计划。如果资料不足，先列出缺口并请求补充。
+```
+
+### 长内容
+
+```text
+请只生成 workflow，不要执行。
+
+内容：
+<<<
+<长笔记、需求、会议记录或 spec>
+>>>
+```
+
+如果输入只有标题、编号或非常短的片段，skill 仍应生成保守 workflow，并在 workflow 中标记不确定性。只有当输入完全没有可转换内容时，才要求用户补充内容。
 
 ## 行为树语义
 
@@ -45,6 +106,9 @@
 
 ```text
 Workflow 路径：{skillpath}/{workflowname}
+
+Workflow 目标：<从用户输入推导出的一句话目标>
+输入摘要：<该 workflow 处理的内容或触发输入摘要>
 
 ## Behavior Tree
 
@@ -157,6 +221,7 @@ Then:
 
 - 说明何时使用。
 - 说明该 skill 根据用户内容生成一个 workflow。
+- 说明用户应该如何输入内容、名称、路径和约束。
 - 强调只生成，不执行。
 - 指向 `engine.md`。
 - 给出输入和输出格式。
@@ -177,6 +242,8 @@ engine 定义稳定编排：
 提取：
 
 - 用户目标。
+- 原始内容。
+- Workflow 名称。
 - 任务领域。
 - 约束。
 - 明确路径或默认路径。
@@ -200,6 +267,7 @@ engine 定义稳定编排：
 
 写出最终行为树：
 
+- 在行为树前写出 `Workflow 目标` 和 `输入摘要`。
 - 只写 workflow-level 工作阶段。
 - 不写具体实现命令，除非用户内容本身要求。
 - 每个 `Stage` 写 `Purpose`。
@@ -211,6 +279,8 @@ engine 定义稳定编排：
 检查：
 
 - 路径存在。
+- workflow 目标来自用户输入。
+- 输出包含 `Workflow 目标` 和 `输入摘要`。
 - 输出是行为树，不是线性清单或实现计划。
 - 没有执行 workflow。
 - 失败路径没有丢失。
@@ -231,6 +301,25 @@ engine 定义稳定编排：
 ## 验证计划
 
 实现前后使用同一组 pressure scenarios 验证。
+
+### Scenario 0: Named input
+
+Prompt:
+
+```text
+Workflow 名称：research-synthesis
+Workflow 路径：.agents/skills/generate-agent-workflow/workflows/research-synthesis
+
+内容：
+整理研究资料，提炼结论，生成行动计划。如果资料不足，先列出缺口并请求补充。
+```
+
+Expected:
+
+- 输出使用用户提供的 workflow 路径。
+- workflow 目标明确来自输入内容。
+- 输出包含输入摘要。
+- 信息不足路径用 `Fallback` 或等价行为树结构表达。
 
 ### Scenario 1: Simple workflow
 
