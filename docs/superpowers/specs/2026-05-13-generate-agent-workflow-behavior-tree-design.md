@@ -1,4 +1,4 @@
-# Agent Engineering Workflow 行为树设计
+# Generate Agent Workflow 行为树设计
 
 ## 背景
 
@@ -6,7 +6,7 @@
 
 现有微内核方案把入口、engine 和 stages 拆开，熵管理较好，但生成形态仍以线性 workflow、轻量 `on_failure` / `on_condition` 标注为主。根据 `docs/superpowers/agent-pipeline-architecture-comparison.md` 的评估，行为树在 Harness Engineering 维度上得分最高，尤其适合表达顺序约束、失败降级、条件上下文注入，以及 Orchestrator / Worker 分离。
 
-本设计将 skill 语义收敛为：**根据用户提供的内容生成一个 agent workflow**。建议后续实现时将 skill 名从 `agent-engineering-pipeline` 迁移为 `agent-engineering-workflow`；如果为了兼容暂不改目录名，文档和输出契约仍应使用 workflow 作为用户可见术语。行为树是该 workflow 的默认结构表达，微内核式文件组织可以保留，但它服务于 workflow 生成，而不是在多种 workflow 形态之间摇摆。
+本设计将 skill 语义收敛为：**根据用户提供的内容生成一个 agent workflow**。建议后续实现时将 skill 名从 `agent-engineering-pipeline` 迁移为 `generate-agent-workflow`；如果为了兼容暂不改目录名，文档和输出契约仍应使用 workflow 作为用户可见术语。行为树是该 workflow 的默认结构表达，微内核式文件组织可以保留，但它服务于 workflow 生成，而不是在多种 workflow 形态之间摇摆。
 
 ## 目标
 
@@ -131,7 +131,7 @@ Then:
 建议保留当前微内核文件组织，但调整职责：
 
 ```text
-.agents/skills/agent-engineering-workflow/
+.agents/skills/generate-agent-workflow/
   SKILL.md
   zh-CN.md
   engine.md
@@ -288,7 +288,7 @@ Expected:
 
 ## 成功标准
 
-- `agent-engineering-workflow` 的语义是根据用户内容生成一个 workflow。
+- `generate-agent-workflow` 的语义是根据用户内容生成一个 workflow。
 - 默认输出使用行为树结构表达 workflow。
 - `Fallback` 和 `Condition` 被用于真实控制流，而不是装饰性文本。
 - 简单输入仍得到简单 `Sequence`，不会过度设计。
