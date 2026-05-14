@@ -7,7 +7,9 @@ description: Use when continuing or executing a prepared Cocos Creator PureMVC m
 
 ## Overview
 
-Execute a prepared MVC module workflow workspace one layer at a time. This skill trusts `_status.md` and `_tree.md` over conversation memory, advances low-risk steps automatically, and blocks when human steering is required.
+Execute a prepared MVC module workflow workspace one layer at a time. Trusts `_status.md` and `_tree.md` over conversation memory, advances low-risk steps automatically, blocks when human steering is required.
+
+**Architecture knowledge lives in `docs/mvc-workflows/BaseContext/` — this skill references it, not duplicates it.**
 
 ## Inputs
 
@@ -15,11 +17,26 @@ Execute a prepared MVC module workflow workspace one layer at a time. This skill
 
 ## Must Read
 
+### 工作区文件（始终）
 - `_tree.md`
 - `_status.md`
 - `_context.md`
-- `_constraint.md`
-- Current layer files: `01_spec.md`, `02_plan.md`, `03_execute.md`, `04_test.md`
+- `_constraint.md` — 本模块适用的约束清单（指向 `docs/mvc-workflows/constraint/`）
+
+### 架构参考（按当前层加载 — 委托子 skill 前必读）
+- `docs/mvc-workflows/BaseContext/ProxyBaseContext.md` — Proxy 层执行时读取
+- `docs/mvc-workflows/BaseContext/ViewBaseContext.md` — View+Prefab 层执行时读取
+- `docs/mvc-workflows/BaseContext/MediatorBaseContext.md` — Mediator 层执行时读取
+- `docs/mvc-workflows/BaseContext/CommandBaseContext.md` — 涉及新建 Command 时读取
+
+### 约束参考（按当前层加载 — 从 `_constraint.md` 适用清单中索引）
+- `docs/mvc-workflows/constraint/ProxyConstraint.md`
+- `docs/mvc-workflows/constraint/ViewConstraint.md`
+- `docs/mvc-workflows/constraint/MediatorConstraint.md`
+- `docs/mvc-workflows/constraint/CommandConstraint.md`
+- `docs/mvc-workflows/constraint/NotificationConstraint.md`
+- `docs/mvc-workflows/constraint/RegistrationConstraint.md`
+- `docs/mvc-workflows/constraint/ModuleStructureConstraint.md`
 
 ## Must Not
 
@@ -29,6 +46,7 @@ Execute a prepared MVC module workflow workspace one layer at a time. This skill
 - Do not recollect information already confirmed by `mvc-context-gatherer`.
 - Do not directly edit `_tree.md` to change execution order.
 - Do not modify shared registration files while another module or child module is active without blocking for confirmation.
+- Do not inline architecture patterns — read them from `docs/mvc-workflows/BaseContext/`.
 
 ## Recovery Algorithm
 
@@ -65,10 +83,20 @@ Execute a prepared MVC module workflow workspace one layer at a time. This skill
 
 ## Delegation Rules
 
-- `01_spec` → `/brainstorming`
-- `02_plan` → `/writing-plans`
-- `03_execute` → `/executing-plans` + `/test-driven-development`
-- `04_test` → `/verification`
+委托子 skill 时，必须将当前层的 BaseContext + Constraint 文件内容作为上下文传入子 skill，这样子 skill 不需要自己去项目 grep 模式：
+
+| 当前层 | 委托前必读 | 传给子 skill |
+|--------|-----------|-------------|
+| Proxy | `ProxyBaseContext.md` + `ProxyConstraint.md` | Proxy 创建模式 + 约束 |
+| View+Prefab | `ViewBaseContext.md` + `ViewConstraint.md` | View 创建模式 + Prefab 约定 + 约束 |
+| Mediator | `MediatorBaseContext.md` + `MediatorConstraint.md` | Mediator 创建模式 + 事件绑定 + 约束 |
+
+| Step | 委托目标 |
+|------|----------|
+| `01_spec` | `/brainstorming` |
+| `02_plan` | `/writing-plans` |
+| `03_execute` | `/executing-plans` + `/test-driven-development` |
+| `04_test` | `/verification` |
 
 ## High-Risk Gates
 
@@ -78,7 +106,7 @@ Block when any of these occur:
 - Repository facts differ from `_context.md`.
 - Shared files such as `UIManifest.ts`, `Commands.ts`, `ModelPrepCmd.ts`, `ViewPrepCmd.ts`, or `ControllerCmd.ts` must be modified.
 - Parent completion depends on child modules that are not `done` or `skipped`.
-- C1-C17 constraints conflict with the implementation.
+- Constraints in `docs/mvc-workflows/constraint/*.md` conflict with the implementation.
 - Integration verification fails.
 
 ## Final Output
