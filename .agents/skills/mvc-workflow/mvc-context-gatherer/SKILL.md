@@ -40,7 +40,7 @@ Build a module workflow workspace before implementation starts. This skill creat
 2. Show the discovered Proxy, ViewId, Prefab, Command, and path findings to the user.
 3. Wait for user confirmation or correction.
 4. Ask only for missing information.
-5. Render templates into the module workflow directory.
+5. Render templates into `docs/mvc-workflows/<ModuleName>/`.
 6. Initialize `_status.md` with Runtime, Layers, and SubModules.
 7. Report the workflow path, generated files, and next step `/mvc-executor`.
 
