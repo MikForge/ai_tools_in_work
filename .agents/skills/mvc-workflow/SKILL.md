@@ -5,23 +5,32 @@ description: Cocos Creator PureMVC 模块开发工作流入口。选择场景后
 
 # MVC Workflow
 
-## 概览
+## Role
 
-MVC 模块开发的两阶段工作流入口：上下文采集 → 执行实现。
+Route MVC module workflow requests. Do not perform business analysis or implementation here.
 
-## 子 Skill
+## Must Read
 
-| # | Skill | 场景 |
-|---|-------|------|
-| 1 | mvc-context-gatherer | 新建模块工作区、刷新上下文、添加子模块 |
-| 2 | mvc-executor | 从断点继续执行已准备好的工作区 |
+- `CLAUDE.md`
+- `docs/mvc-workflows/INDEX.md`
 
-## 工作流程
+## Routes
 
-1. 向用户展示两个子 skill 及其适用场景
-2. 用户选择后，委托给对应子 skill
-3. 不做任何业务处理
+| User Intent | Route |
+|---|---|
+| Create a module workflow workspace | `mvc-context-gatherer` |
+| Refresh module workflow context | `mvc-context-gatherer` |
+| Add child module workflow context | `mvc-context-gatherer` |
+| Continue a prepared workflow workspace | `mvc-executor` |
 
-## 停止条件
+## Workflow
 
-用户意图不明确无法二选一时，追问确认。
+1. Read the workflow index.
+2. Identify whether the user needs context gathering or execution.
+3. Delegate to the matching child skill.
+4. Stop.
+
+## Stop Conditions
+
+- If the user intent does not clearly match gatherer or executor, ask one concise routing question.
+- Do not edit source files, workflow files, or docs from this router.
