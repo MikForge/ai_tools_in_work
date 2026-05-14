@@ -3,15 +3,14 @@
 ## 外部参考
 {{ExternalReferences}}
 
-## 路径约定
-- ViewId 枚举：`assets/scripts/game/common/constants/UIManifest.ts`
-- UI 配置注册：`assets/scripts/game/common/constants/UIManifest.ts`（`UI_MANIFEST`）
-- View 基类：`assets/core/gui/base/BaseView.ts`
-- Mediator 基类：`assets/scripts/core/base/BaseMeditor.ts`
-- Proxy 基类：`assets/scripts/core/base/BaseProxy.ts`
-- 通知常量：`assets/scripts/game/controller/Commands.ts`
-- PureMVC 注册入口：`assets/scripts/game/controller/cmd/startup/ModelPrepCmd.ts` / `ViewPrepCmd.ts` / `ControllerCmd.ts`
-- Prefab 目录：`assets/resources/gui/`、`assets/resources/common/prefab/`
+## 架构参考
+- [Proxy 创建模式](../../../../docs/mvc-workflows/BaseContext/ProxyBaseContext.md)
+- [View 创建模式](../../../../docs/mvc-workflows/BaseContext/ViewBaseContext.md)
+- [Mediator 创建模式](../../../../docs/mvc-workflows/BaseContext/MediatorBaseContext.md)
+- [Command 创建模式](../../../../docs/mvc-workflows/BaseContext/CommandBaseContext.md)
+
+## 约束参考
+- [约束清单](../../../../docs/mvc-workflows/constraint/)
 
 ## 已有清单
 - 已注册 ViewId：{{DiscoveredViewIds}}
