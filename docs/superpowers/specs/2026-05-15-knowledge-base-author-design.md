@@ -121,15 +121,36 @@ Reason: 文档描述模块关系和分层约束。
 
 ---
 
-## SKILL.md 建议结构
+## Skill 落地目标
 
-```markdown
-# Knowledge Base Author
+目标 skill：
 
-## Overview
-## Draft-Only Contract
-## Draft Structure
-## Revision Workflow
-## Fact Preservation
-## Handoff to Publisher
+```yaml
+name: knowledge-base-author
+description: Drafts or revises project knowledge-base Markdown content without writing files. Use when turning user material, code analysis, session notes, or loaded knowledge into a publishable knowledge-base draft.
 ```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-author/
+├── SKILL.md
+└── zh-CN.md
+```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Draft-Only Contract
+- Draft Structure
+- Revision Workflow
+- Fact Preservation
+- Category Suggestions
+- Handoff to Publisher
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/document-anomalies.md`

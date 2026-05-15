@@ -116,15 +116,35 @@ Partial/Broken 的报告要求：
 
 ---
 
-## SKILL.md 建议结构
+## Skill 落地目标
 
-```markdown
-# Knowledge Base Router
+目标 skill：
 
-## Overview
-## Bootstrap Gate
-## Intent Routing
-## Clarification Rules
-## Common Mistakes
-## Handoff Targets
+```yaml
+name: knowledge-base-router
+description: Routes project knowledge-base tasks through Bootstrap Gate and delegates to init, context, author, publisher, auditor, or gardener skills. Use when the user asks to work with the project knowledge base or is unsure which knowledge-base skill to invoke.
 ```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-router/
+├── SKILL.md
+└── zh-CN.md
+```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Bootstrap Gate
+- Intent Routing
+- Clarification Rules
+- Handoff Targets
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/index-model.md`
+- `knowledge-base-contract/references/audit-report-protocol.md`

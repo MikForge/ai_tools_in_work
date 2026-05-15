@@ -141,15 +141,40 @@ docs/00-project-knowledge-base/
 
 ---
 
-## SKILL.md 建议结构
+## Skill 落地目标
 
-```markdown
-# Knowledge Base Init
+目标 skill：
 
-## Overview
-## Empty-State Precondition
-## Template Files
-## Workflow
-## Refusal Cases
-## Completion Report
+```yaml
+name: knowledge-base-init
+description: Initializes a project knowledge base from an empty state by creating `.knowledge-base.yml`, directories, and index templates. Use when Bootstrap Gate is Empty and the user explicitly requests knowledge-base initialization.
 ```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-init/
+├── SKILL.md
+├── zh-CN.md
+├── knowledge-base.yml.temp
+└── templates/
+    ├── root-readme.md
+    ├── layer-readme.md
+    └── category-readme.md
+```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Empty-State Precondition
+- Template Files
+- Workflow
+- Refusal Cases
+- Completion Report
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/index-model.md`

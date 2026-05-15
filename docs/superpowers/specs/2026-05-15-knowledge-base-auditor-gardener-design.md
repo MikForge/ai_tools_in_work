@@ -141,26 +141,78 @@ auditor 默认不执行任何修复。
 
 ---
 
-## SKILL.md 建议结构
+## Skill 落地目标
 
-```markdown
-# Knowledge Base Auditor
+本 spec 落成两个独立 skill，不能合并成一个“治理万能入口”。
 
-## Overview
-## Report-Only Contract
-## Audit Checks
-## Audit Report Protocol
-## Document Anomalies
-## Handoff to Gardener
+### `knowledge-base-auditor`
+
+目标 skill：
+
+```yaml
+name: knowledge-base-auditor
+description: Audits project knowledge-base configuration, indexes, links, and document anomalies in report-only mode. Use when the knowledge base may be partial, broken, stale, duplicated, misclassified, or needs inspection before maintenance.
 ```
 
-```markdown
-# Knowledge Base Gardener
+目标目录：
 
-## Overview
-## Preconditions
-## Allowed Repairs
-## Scope Confirmation
-## Apply Workflow
-## Self-Check
+```text
+.agents/skills/knowledge-base-auditor/
+├── SKILL.md
+└── zh-CN.md
 ```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Report-Only Contract
+- Audit Inputs
+- Audit Checks
+- Audit Report Protocol
+- Document Anomaly Handling
+- Handoff to Gardener
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/index-model.md`
+- `knowledge-base-contract/references/audit-report-protocol.md`
+- `knowledge-base-contract/references/document-anomalies.md`
+
+### `knowledge-base-gardener`
+
+目标 skill：
+
+```yaml
+name: knowledge-base-gardener
+description: Applies confirmed knowledge-base maintenance repairs from audit reports, including index fixes, orphan handling, moves, archival, and duplicate cleanup. Use only after an audit report and explicit user-confirmed scope.
+```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-gardener/
+├── SKILL.md
+└── zh-CN.md
+```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Preconditions
+- Dry-Run First Rule
+- Allowed Repairs
+- Scope Confirmation
+- Apply Workflow
+- Self-Check
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/index-model.md`
+- `knowledge-base-contract/references/audit-report-protocol.md`
+- `knowledge-base-contract/references/document-anomalies.md`

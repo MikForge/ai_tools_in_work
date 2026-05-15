@@ -86,6 +86,7 @@ knowledge-base-router
 
 | Skill | 职责 | 权限 |
 | --- | --- | --- |
+| `knowledge-base-contract` | 共享配置、索引、命名和审计报告契约 | support reference，不直接执行业务流程 |
 | `knowledge-base-router` | 环境判定、意图识别、路由 | 只读轻量状态，不写文件 |
 | `knowledge-base-init` | 从零初始化配置、目录、索引模板 | 仅 Empty 状态下写结构文件 |
 | `knowledge-base-context` | 按需读取知识库正文或摘要 | 只读，不直接扫目录 |
@@ -111,6 +112,7 @@ router
 约束规则：
 
 - `router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
+- `contract` 只能作为共享 reference 被读取，不能执行用户任务。
 - `init` 只能处理 Empty 状态，不能覆盖或修复 Partial/Broken。
 - `context` 只读配置和索引，不调用 `publisher` 或 `gardener`。
 - `author` 可以使用 `context` 的结果，但不能自己全库扫描或落盘。

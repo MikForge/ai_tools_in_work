@@ -118,15 +118,37 @@ No knowledge base documents matched "<query>".
 
 ---
 
-## SKILL.md 建议结构
+## Skill 落地目标
 
-```markdown
-# Knowledge Base Context
+目标 skill：
 
-## Overview
-## Read-Only Contract
-## Browse Mode
-## Search Mode
-## Output Format
-## Failure Handoffs
+```yaml
+name: knowledge-base-context
+description: Loads relevant project knowledge-base documents through configured indexes without side effects. Use when searching, browsing, or injecting knowledge-base context before other work.
 ```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-context/
+├── SKILL.md
+└── zh-CN.md
+```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Read-Only Contract
+- Browse Mode
+- Search Mode
+- Exact Path Mode
+- Output Format
+- Failure Handoffs
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/index-model.md`
+- `knowledge-base-contract/references/audit-report-protocol.md`

@@ -149,16 +149,39 @@ publisher 只更新：
 
 ---
 
-## SKILL.md 建议结构
+## Skill 落地目标
 
-```markdown
-# Knowledge Base Publisher
+目标 skill：
 
-## Overview
-## Publish Inputs
-## Category Resolution
-## File Naming
-## Conflict Handling
-## Index Update
-## Publish Self-Check
+```yaml
+name: knowledge-base-publisher
+description: Publishes knowledge-base drafts by resolving category and filename, writing content, updating indexes, and running publish self-checks. Use when a confirmed draft should be added, updated, renamed, or indexed in the project knowledge base.
 ```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-publisher/
+├── SKILL.md
+└── zh-CN.md
+```
+
+`SKILL.md` 必备章节：
+
+- Overview
+- When to Use
+- Publish Inputs
+- Operation Boundaries
+- Category Resolution
+- File Naming
+- Conflict Handling
+- Index Update
+- Rename and Index-Only Rules
+- Publish Self-Check
+- Common Mistakes
+
+依赖 reference：
+
+- `knowledge-base-contract/references/knowledge-base-config.md`
+- `knowledge-base-contract/references/index-model.md`
+- `knowledge-base-contract/references/audit-report-protocol.md`

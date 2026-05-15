@@ -219,6 +219,40 @@ yes | no
 
 ---
 
+## 落地目标
+
+本 spec 不落成用户直接调用的业务 skill。它落成共享 reference 包，供其他知识库 skill 按需引用。
+
+目标 support skill：
+
+```yaml
+name: knowledge-base-contract
+description: Provides shared project knowledge-base contracts for configuration, index structure, naming, audit reports, and document anomalies. Use as a reference dependency for other knowledge-base skills rather than as a user-facing workflow.
+```
+
+目标目录：
+
+```text
+.agents/skills/knowledge-base-contract/
+├── SKILL.md
+├── zh-CN.md
+└── references/
+    ├── knowledge-base-config.md
+    ├── index-model.md
+    ├── audit-report-protocol.md
+    └── document-anomalies.md
+```
+
+`knowledge-base-contract/SKILL.md` 用途：
+
+- 作为共享契约索引，不直接执行读写发布治理。
+- description 应说明它提供知识库配置、索引、命名、审计报告协议的约束。
+- 可设为低触发或仅供其他 knowledge-base skill 引用；具体调用控制在 implementation plan 中决定。
+
+其他知识库 skill 必须在自身 `SKILL.md` 中引用本包的 relevant references，而不是复制一份不同版本的契约。
+
+---
+
 ## 验收标准
 
 - 所有子 spec 引用本契约作为配置、索引和审计报告来源。
@@ -227,3 +261,4 @@ yes | no
 - Audit Report Protocol 字段完整且可被 gardener 消费。
 - Audit Report Protocol 包含 `Severity`，并能表达 blocking、warning、info。
 - 文档异常分类覆盖正文漂移、质量、重复、过期、孤儿、错分六类问题。
+- 落地时存在 `knowledge-base-contract` 共享 reference 包，其他 knowledge-base skill 不各自维护冲突版本。
