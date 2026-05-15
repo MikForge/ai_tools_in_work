@@ -2,27 +2,26 @@
 
 ## 背景
 
-现有 `writing-knowledge-base` skill 面向单一项目知识库结构，硬编码了 `docs/00-project-harness-knowledge-base/`、三层目录分类和 README 表格索引规则。它适合作为项目专用 skill，但不适合作为可迁移的通用知识库写入能力。
+本设计定义一个新的通用 skill：`knowledge-base-update`。它负责在项目知识库中新增、更新、归档或索引 Markdown 文档。
 
-本设计将该能力改造为新的通用 skill：`knowledge-base-update`。新 skill 只提供基础骨架和原则声明，具体知识库路径、分类和索引规则全部由项目根目录的 `.knowledge-base.yml` 声明。
+`knowledge-base-update` 只提供基础骨架和原则声明。具体知识库路径、分类和索引规则全部由项目根目录的 `.knowledge-base.yml` 声明。
 
 ## 目标
 
-- 将 skill 名称从 `writing-knowledge-base` 改为 `knowledge-base-update`。
-- 移除对任何项目目录、三层结构或固定分类体系的硬编码。
+- 定义新的 `knowledge-base-update` skill。
+- 不绑定任何固定目录结构、分类体系或索引风格。
 - 使用 `.knowledge-base.yml` 作为唯一默认配置入口。
 - 支持新增、更新、归档 Markdown 知识文档的最小通用流程。
 - 写入内容后维护配置指定的索引入口。
-- 为后续使用 `writing-skills` 创建或改写 skill 提供明确输入规格。
+- 为后续使用 `writing-skills` 创建该 skill 提供明确输入规格。
 
 ## 非目标
 
-- 不内置 `project-layer`、`technology-layer`、`assets-layer` 等项目专用分类。
+- 不内置任何项目专用分类。
 - 不自动扫描多个候选知识库目录。
 - 不在缺少配置时猜测路径或创建文档。
 - 不替代 `writing-plans`、`managing-project-rules`、`record-idea` 等专门 skill。
-- 不实现脚本、CLI 或自动迁移工具。
-- 不在本设计阶段直接修改现有 skill 文件。
+- 不实现脚本、CLI 或自动化工具。
 
 ## 核心原则
 
@@ -175,17 +174,6 @@ description: Use when updating project knowledge-base Markdown content in a repo
 
 如果索引文件不存在，skill 可以创建一个最小索引文件。前提是该索引路径来自 `.knowledge-base.yml`，不是 agent 猜出来的路径。
 
-## 需要从旧 skill 移除的内容
-
-这些内容属于项目专用逻辑，不应进入 `knowledge-base-update`：
-
-- 固定路径 `docs/00-project-harness-knowledge-base/`。
-- 三层知识库结构图。
-- `01-project-layer`、`02-technology-layer`、`03-assets-layer` 分类决策树。
-- “每个子目录已有 README.md 共 10 个”的假设。
-- 分类模糊时固定选择“技术层 > 资产层”的规则。
-- 文件名禁止日期前缀等项目偏好，除非未来由配置声明。
-
 ## 建议的 SKILL.md 结构
 
 ```markdown
@@ -214,7 +202,7 @@ description: Use when updating project knowledge-base Markdown content in a repo
 
 | 错误 | 正确做法 |
 |---|---|
-| 沿用旧 skill 的固定知识库路径 | 只读取 `.knowledge-base.yml`。 |
+| 根据常见目录名猜测知识库位置 | 只读取 `.knowledge-base.yml`。 |
 | 缺少配置时仍然创建文档 | 停止并请求用户补齐配置。 |
 | 发明未配置分类 | 只使用配置中的分类，模糊时询问。 |
 | 只写文档不更新索引 | 每次写入后维护对应索引。 |
@@ -229,9 +217,9 @@ description: Use when updating project knowledge-base Markdown content in a repo
    - 用户要求“写入知识库”，仓库没有 `.knowledge-base.yml`。
    - 期望行为：agent 停止，输出最小配置示例，不写文件。
 
-2. **固定旧路径诱惑场景**
-   - 仓库存在旧的 `docs/00-project-harness-knowledge-base/`，但 `.knowledge-base.yml` 指向 `docs/00-knowledgebase`。
-   - 期望行为：agent 使用配置路径，不使用旧硬编码路径。
+2. **目录猜测诱惑场景**
+   - 仓库中存在多个看起来像知识库的目录，但 `.knowledge-base.yml` 指向 `docs/00-knowledgebase`。
+   - 期望行为：agent 使用配置路径，不根据目录名猜测目标。
 
 3. **分类模糊场景**
    - 配置中有 `notes` 和 `decisions`，用户内容同时像笔记和决策。
@@ -251,4 +239,4 @@ description: Use when updating project knowledge-base Markdown content in a repo
 
 ## 实施提示
 
-实际改写时，建议新建 `.agents/skills/knowledge-base-update/`，生成新的 `SKILL.md` 和 `zh-CN.md`。旧的 `.agents/skills/writing-knowledge-base/` 是否删除、保留别名或迁移说明，应在实现计划中单独确认，避免破坏已有调用习惯。
+实际创建时，建议新建 `.agents/skills/knowledge-base-update/`，生成新的 `SKILL.md` 和 `zh-CN.md`。
