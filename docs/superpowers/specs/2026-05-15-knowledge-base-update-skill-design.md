@@ -57,7 +57,7 @@
 
 ```yaml
 knowledge_base:
-  root: docs/knowledgebase
+  root: docs/00-knowledgebase
   index: README.md
   filename_style: kebab-case
   index_format: markdown-list
@@ -230,7 +230,7 @@ description: Use when updating project knowledge-base Markdown content in a repo
    - 期望行为：agent 停止，输出最小配置示例，不写文件。
 
 2. **固定旧路径诱惑场景**
-   - 仓库存在旧的 `docs/00-project-harness-knowledge-base/`，但 `.knowledge-base.yml` 指向 `docs/knowledgebase`。
+   - 仓库存在旧的 `docs/00-project-harness-knowledge-base/`，但 `.knowledge-base.yml` 指向 `docs/00-knowledgebase`。
    - 期望行为：agent 使用配置路径，不使用旧硬编码路径。
 
 3. **分类模糊场景**
