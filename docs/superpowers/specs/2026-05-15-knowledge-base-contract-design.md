@@ -203,6 +203,7 @@ yes | no
 - `Evidence` 必须引用实际路径、配置字段、索引链接或正文片段位置，不能只写主观判断。
 - `Recommended Fix` 只能是建议，不代表已经修复。
 - `Suggested Next Skill` 必须与异常类型一致；init-compatible Partial 使用 `knowledge-base-init`，语义改写使用 `knowledge-base-author`，结构修复使用 `knowledge-base-gardener`。
+- `Suggested Next Skill` 只是推荐路由，不是执行授权；只有 `knowledge-base-router` 在重新检查 Bootstrap Gate、用户确认和必需字段后，才能生成新的 `Worker Handoff Payload`。
 - `Suggested Gardener Scope` 是 `knowledge-base-gardener` 执行上限，`knowledge-base-gardener` 不能自行扩大范围。
 - `Severity=blocking` 表示 router/publisher/context 必须停止普通读写。
 - `Severity=warning` 表示普通读取可继续，但发布或治理前需要确认。

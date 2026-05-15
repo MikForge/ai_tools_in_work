@@ -68,7 +68,7 @@ knowledge-base-router
 
 所有外部知识库请求都必须进入 `knowledge-base-router`。这里的外部请求包括用户自然语言请求、agent 自发的知识库读写维护请求，以及其他 workflow/skill 想读取或沉淀项目知识时发起的请求。
 
-`knowledge-base-router` 只做状态判断、意图分类、流程编排和 handoff，不亲自生成正文、全文读取、写文件或治理修复。`knowledge-base-context`、`knowledge-base-author`、`knowledge-base-publisher`、`knowledge-base-auditor`、`knowledge-base-gardener`、`knowledge-base-init` 是 internal worker，只接受 router 或上游明确 handoff。
+`knowledge-base-router` 只做状态判断、意图分类、流程编排和 handoff，不亲自生成正文、全文读取、写文件或治理修复。`knowledge-base-context`、`knowledge-base-author`、`knowledge-base-publisher`、`knowledge-base-auditor`、`knowledge-base-gardener`、`knowledge-base-init` 是 skill-shaped internal instruction module，只接受 router 生成的完整 Worker Handoff Payload；其他 worker 只能输出 recommendation 或报告。
 
 ---
 
@@ -77,7 +77,7 @@ knowledge-base-router
 1. **配置是唯一入口**：知识库根目录、分类、索引位置由 `.knowledge-base.yml` 决定。
 2. **索引优先发现**：读取正文必须经由配置和 README 索引，不直接 `find` 或 `ls` 扫正文目录。
 3. **写作与落盘分离**：`knowledge-base-author` 只生成草稿；`knowledge-base-publisher` 才能写文件和更新索引。
-4. **治理默认报告**：`knowledge-base-auditor` 默认只读；`knowledge-base-gardener` 必须基于报告或明确范围执行。
+4. **治理默认报告**：`knowledge-base-auditor` 默认只读；`knowledge-base-gardener` 必须基于报告和明确确认范围执行。
 5. **Bootstrap Gate 先行**：router 在任何读写治理动作前，先判断 Ready、Empty、Partial、Broken。
 6. **不确定就停下**：操作类型、分类、目标文件、覆盖意图不清楚时，一次只问一个问题。
 7. **报告协议固定**：Partial、Broken、Conflict 和文档异常必须输出 contract 中定义的 Audit Report Protocol。
@@ -129,7 +129,8 @@ knowledge-base-router
 
 - 任何包含 `SKILL.md` 的目录名必须与该文件 frontmatter 的 `name` 完全一致。
 - `knowledge-base-router` 是唯一 public skill，允许隐式触发。
-- `knowledge-base-*` internal worker 是真实 skill，但必须禁用隐式触发，只能由 router、auditor 或完整 handoff payload 驱动。
+- `knowledge-base-*` internal worker 是 skill-shaped internal instruction module：目录形态和 `SKILL.md` 写法像 skill，但不是 public top-level skill。
+- internal worker 必须禁用隐式触发，只能由 router 通过完整 Worker Handoff Payload 驱动；auditor 只能输出报告和 recommendation，不能直接授权其他 worker 执行。
 - internal worker 的 `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
 - 如目标运行时支持 Claude Code 扩展，internal worker 的 `SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`；不支持时也必须在正文中拒绝缺少 handoff 的直接外部请求。
 
@@ -160,16 +161,16 @@ knowledge-base-router
 
 约束规则：
 
-- `knowledge-base-router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
-- 所有 skill 必须引用共享 contract spec 的相关章节，不能自行定义另一套配置、索引、命名或报告协议。
+- `knowledge-base-router` 可以按显式加载协议驱动所有 internal worker，但不能生成正文、写文件或做治理。
+- router 与所有 internal worker 必须引用共享 contract spec 的相关章节，不能自行定义另一套配置、索引、命名或报告协议。
 - 用户、agent、其他 workflow/skill 的知识库请求都必须先进入 `knowledge-base-router`，不得直接触发 internal worker。
-- internal worker 只能在 router、auditor 或明确 handoff 后执行。
+- internal worker 只能在 router 传入明确 Worker Handoff Payload 后执行；payload 必须保留 `request_origin`，且 `source` 必须是 `knowledge-base-router`。
 - `knowledge-base-init` 只能处理 Empty 或 init-compatible Partial，不能覆盖或修复 repair-required Partial/Broken。
 - `knowledge-base-context` 只读配置和索引，不调用 `knowledge-base-publisher` 或 `knowledge-base-gardener`。
 - `knowledge-base-author` 可以使用 `knowledge-base-context` 的结果，但不能自己全库扫描或落盘。
 - `knowledge-base-publisher` 可读取目标文件和相关索引，但不能做全库治理。
 - `knowledge-base-auditor` 可读取全库配置、索引、正文，但默认只报告。
-- `knowledge-base-gardener` 必须基于 `knowledge-base-auditor` 报告或用户明确范围执行。
+- `knowledge-base-gardener` 必须基于 `knowledge-base-auditor` 报告和用户明确确认范围执行。
 
 ---
 
@@ -186,8 +187,8 @@ knowledge-base-router
 
 ## 推荐落地顺序
 
-1. 先实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，建立 `knowledge-base-router` package 骨架、唯一公共入口、Bootstrap Gate 和 `references/` 位置。
-2. 确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约，落成 `references/contract.md`。
+1. 先确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约。
+2. 实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，建立 `knowledge-base-router` package 骨架、唯一公共入口、Bootstrap Gate 和 `references/contract.md`。
 3. 实现 [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md)，让 Empty 状态可进入 Ready。
 4. 实现 [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md)，提供安全只读上下文。
 5. 实现 [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md)，提供正文草稿生成。

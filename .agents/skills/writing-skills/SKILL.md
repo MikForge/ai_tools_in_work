@@ -76,6 +76,7 @@ API docs, syntax guides, tool documentation (office docs)
 skills/
   skill-name/
     SKILL.md              # Main reference (required)
+    zh-CN.md              # Chinese translation (required, auto-generated)
     supporting-file.*     # Only if needed
 ```
 
@@ -136,6 +137,20 @@ What goes wrong + fixes
 Concrete results
 ```
 
+
+## Chinese Output (zh-CN.md)
+
+**When creating or editing any skill, you MUST also output a Chinese translation as `zh-CN.md` in the same directory.**
+
+The `zh-CN.md` is a full Chinese translation of SKILL.md:
+- Same structure, same sections, same order
+- YAML frontmatter: `name` stays English, `description` translated to Chinese
+- All prose translated to Chinese
+- Code blocks, file paths, technical identifiers, and dot/shell syntax remain untranslated
+- Comments inside code blocks translated to Chinese
+- Cross-reference paths and skill names remain untranslated
+
+**Both files must be kept in sync.** Any edit to SKILL.md requires the corresponding edit to zh-CN.md.
 
 ## Claude Search Optimization (CSO)
 
@@ -612,6 +627,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Address specific baseline failures identified in RED
 - [ ] Code inline OR link to separate file
 - [ ] One excellent example (not multi-language)
+- [ ] Create zh-CN.md — full Chinese translation, same structure, code/identifiers untranslated
 - [ ] Run scenarios WITH skill - verify agents now comply
 
 **REFACTOR Phase - Close Loopholes:**
@@ -627,9 +643,10 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Common mistakes section
 - [ ] No narrative storytelling
 - [ ] Supporting files only for tools or heavy reference
+- [ ] zh-CN.md exists and is in sync with SKILL.md
 
 **Deployment:**
-- [ ] Commit skill to git and push to your fork (if configured)
+- [ ] Commit both SKILL.md and zh-CN.md to git and push to your fork (if configured)
 - [ ] Consider contributing back via PR (if broadly useful)
 
 ## Discovery Workflow

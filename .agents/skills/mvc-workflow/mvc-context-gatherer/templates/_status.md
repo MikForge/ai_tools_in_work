@@ -15,6 +15,14 @@
 | Proxy | {{ProxyInitialStatus}} | — | 0 | — |
 | View+Prefab | pending | — | 0 | — |
 | Mediator | pending | — | 0 | — |
+| Command | {{CommandInitialStatus}} | — | 0 | — |
+
+## Integration
+| 字段 | 值 |
+|------|----|
+| status | pending |
+| verified_at | — |
+| result | — |
 
 ## SubModules
 | 子模块 | 状态 | blocked_reason |
@@ -24,3 +32,4 @@
 <!-- 状态枚举：pending | running | blocked | done | skipped | failed -->
 <!-- step 枚举：— | 01_spec | 02_plan | 03_execute | 04_test | integration -->
 <!-- 层 done/skipped 时 step = — -->
+<!-- last_error 表示当前未解决错误；层 done/skipped 时必须清空为 —，历史错误写入 _dev_log.md -->

@@ -14,6 +14,12 @@
 
 ---
 
+## agent-engineering-pipeline
+
+- 来源:`local`
+- 安装:`仓库内置`
+- 用途:根据输入内容生成最小 agent pipeline 骨架
+
 ## brainstorming
 
 - 来源:`obra/superpowers`
@@ -77,6 +83,13 @@
 - 用途:完成任务、大功能、合并前,请求评审校验需求
 - 链接:<https://skills.sh/obra/superpowers/requesting-code-review>
 
+## resume-tailor
+
+- 来源:`paramchoudhary/resumeskills`
+- 安装:`npx skills add "paramchoudhary/resumeskills@resume tailor" -y`
+- 用途:根据具体职位描述定制简历,突出匹配经验同时保持真实性
+- 链接:<https://skills.sh/paramchoudhary/resumeskills/resume-tailor>
+
 ## subagent-driven-development
 
 - 来源:`obra/superpowers`
@@ -90,6 +103,13 @@
 - 安装:`npx skills add obra/superpowers@systematic-debugging -y`
 - 用途:遇到 bug / 测试失败 / 异常行为,先系统排查再提修复方案
 - 链接:<https://skills.sh/obra/superpowers/systematic-debugging>
+
+## tailored-resume-generator
+
+- 来源:`composiohq/awesome-claude-skills`
+- 安装:`npx skills add composiohq/awesome-claude-skills@tailored-resume-generator -y`
+- 用途:分析职位描述,生成定制简历以突出相关经验和技能
+- 链接:<https://skills.sh/composiohq/awesome-claude-skills/tailored-resume-generator>
 
 ## test-driven-development
 

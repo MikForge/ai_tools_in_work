@@ -4,13 +4,14 @@
 {{ExternalReferences}}
 
 ## 架构参考
-- [Proxy 创建模式](../../../../docs/mvc-workflows/BaseContext/ProxyBaseContext.md)
-- [View 创建模式](../../../../docs/mvc-workflows/BaseContext/ViewBaseContext.md)
-- [Mediator 创建模式](../../../../docs/mvc-workflows/BaseContext/MediatorBaseContext.md)
-- [Command 创建模式](../../../../docs/mvc-workflows/BaseContext/CommandBaseContext.md)
+- [架构索引](../BaseContext/INDEX.md)
+- [Proxy 创建模式](../BaseContext/ProxyBaseContext.md)
+- [View 创建模式](../BaseContext/ViewBaseContext.md)
+- [Mediator 创建模式](../BaseContext/MediatorBaseContext.md)
+- [Command 创建模式](../BaseContext/CommandBaseContext.md)
 
 ## 约束参考
-- [约束清单](../../../../docs/mvc-workflows/constraint/)
+- [约束索引](../constraint/INDEX.md)
 
 ## 已有清单
 - 已注册 ViewId：{{DiscoveredViewIds}}
@@ -22,6 +23,7 @@
 - 模块名称：`{{ModuleName}}`
 - 目标 ViewId：`{{ViewId}}`
 - 是否需要新建 Proxy：{{NeedsProxy}}
+- 是否需要新建 Command：{{NeedsCommand}}
 - 相关通知常量：{{ModuleCommands}}
 
 ## UI 配置

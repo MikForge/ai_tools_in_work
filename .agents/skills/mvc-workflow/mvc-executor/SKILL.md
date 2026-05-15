@@ -16,6 +16,7 @@ Execute a prepared MVC module workflow workspace through recoverable layer steps
 ## Must Read
 
 - `CLAUDE.md`
+- `.claude/rules/*`
 - `docs/mvc-workflows/INDEX.md`
 - Current workspace `_tree.md`
 - Current workspace `_status.md`
@@ -33,6 +34,7 @@ Use `BaseContext/INDEX.md` and `constraint/INDEX.md` to load only the current la
 - Do not directly edit `_tree.md` to change execution order.
 - Do not modify shared registration files without blocking for confirmation.
 - Do not duplicate architecture or constraint details from `docs/mvc-workflows/`.
+- Do not suppress or ignore IDE diagnostic errors during 03_execute. Every error must be recorded in `_dev_log.md` and `_status.md` before fixing.
 
 ## Runtime Loop
 
@@ -41,11 +43,17 @@ Use `BaseContext/INDEX.md` and `constraint/INDEX.md` to load only the current la
 3. If runtime is missing or inconsistent, resume from the first `running`, `blocked`, `failed`, or `pending` layer.
 4. If the active layer is `blocked`, stop and report `blocked_reason`.
 5. Load current-layer BaseContext and constraint files through the indexes.
-6. Execute active layers in `_tree.md` order.
+6. Execute active layers in `_tree.md` order, including optional `Command` when command work is required.
 7. For each active layer, run `01_spec -> 02_plan -> 03_execute -> 04_test`.
-8. Update `_status.md` after every transition.
+     - **03_execute error recording**: After each source file edit, check IDE diagnostics in the hook response. If errors exist:
+       1. Record `execute_fail` in `_dev_log.md` with the full error code and message.
+       2. Set `last_error` in `_status.md` for the current layer, increment `retries`.
+       3. Trace root cause — if it originates in an upstream layer, record `root_cause` in `_dev_log.md` linking to that layer, and update that layer's `last_error` as well.
+       4. Apply the fix, then record `fix` + `execute_retry` in `_dev_log.md`.
+       5. Continue only after all diagnostics are clean.
+8. Update `_status.md` after every transition; clear `last_error` when a layer becomes `done` or `skipped`.
 9. Append `_dev_log.md` after every state change.
-10. Run integration verification after all layers are `done` or `skipped`.
+10. Run integration verification after all layers are `done` or `skipped`, then persist the result in `_status.md`.
 
 ## Block Gates
 

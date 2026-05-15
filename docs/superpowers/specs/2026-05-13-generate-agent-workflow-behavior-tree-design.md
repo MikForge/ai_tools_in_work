@@ -4,9 +4,47 @@
 
 本设计定义一个全新的 skill：`generate-agent-workflow`。它读取用户提供的想法、需求、笔记、流程描述或粗略 spec，生成一个最小 agent workflow，不执行 workflow 本身。
 
-根据 `docs/superpowers/agent-pipeline-architecture-comparison.md` 的评估，行为树在 Harness Engineering 维度上得分最高，尤其适合表达顺序约束、失败降级、条件上下文注入，以及 Orchestrator / Worker 分离。
-
 `generate-agent-workflow` 是独立新建的 workflow generator，不基于已有 skill 改造。行为树是该 workflow 的默认结构表达，文件组织服务于 workflow 生成本身。
+
+### 自下而上设计策略（2026-05-14）
+
+为避免在真空中设计 workflow generator，采用**先落地 concrete workflow、再提取共性模式反推 generator** 的路径：
+
+1. **MVC Module Workflow**（[spec](./2026-05-14-mvc-module-workflow-design.md)）— 最模板化场景，验证最简行为树下限
+2. **Framework Core Workflow**（待设计）— 最高复杂度，验证深度嵌套和验证 gate
+3. **Prefab Handling Workflow**（待设计）— 跨工具场景，验证 Condition 分支和上下文注入
+
+三者横向对比后，将模式反馈写入本 spec 的生成规则，修正当前基于推演的节点语义、嵌套深度限制和 minimality 规则。
+
+### Harness Engineering 抽象范式
+
+Harness Engineering 的核心理念是：**构建约束、反馈回路、上下文工程和熵管理，而非优化模型本身**。它定义了七个评估维度，用于衡量一个架构模式是否适合 agent pipeline 场景：
+
+| # | 维度 | 含义 | 在 Agent Skill 语境下的要求 |
+|---|------|------|--------------------------|
+| D1 | **架构约束** | 显式控制流，强制执行顺序和分层 | Pipeline 结构必须让 LLM 不会跳过/遗漏步骤 |
+| D2 | **反馈回路** | 失败→重试→审查→降级→人工介入 | 异常路径必须在 pipeline 中可表达，不可忽略 |
+| D3 | **上下文工程** | 按需注入，不堆料 | 阶段执行时只载入所需上下文，避免窗口浪费 |
+| D4 | **熵管理** | 独立修复，不扩散 | 修改一个 stage 不影响其他 stage |
+| D5 | **Orch/Worker 分离** | 编排逻辑与执行逻辑解耦 | Pipeline 结构定义"何时做"，Stage 定义"怎么做" |
+| D6 | **Human Steer** | 人类可理解、可干预 | 维护者读一遍就知道流程全貌 |
+| D7 | **LLM 解读可靠性** | Agent 执行时不误读结构 | 结构越简单，解读出错概率越低 |
+
+### 行为树为何契合 Harness Engineering
+
+在对 14 种架构模式的评估中，行为树以 **30/35** 分排名第一（HTN 28/35，Gate Checklist 26/35，ReAct Loop 25/35）。它不是每个维度都天然满分，而是用极少控制流原语覆盖了最多的 Harness Engineering 需求：
+
+| 行为树节点 | 对应的 Harness 维度 | 契合方式 |
+|---|---|---|
+| `Sequence` | D1 架构约束 | 显式顺序执行链，降低 LLM 跳步或漏步概率 |
+| `Fallback` | D2 反馈回路 | 原生表达"尝试→失败→降级→人工介入"，异常路径是一等结构 |
+| `Condition` | D3 上下文工程 | 满足条件才执行子节点，为按需注入上下文提供结构化表达 |
+| 独立子树 | D4 熵管理 | 修改一个 Worker 子树不影响整棵树，局部修复不扩散 |
+| 树结构 / 叶节点 | D5 Orch/Worker 分离 | 行为树本身就是 Orchestrator（决定何时执行），叶子 `Stage` 是 Worker（决定如何执行） |
+| 层级树形结构 | D6 Human Steer | 树的层级结构直观反映决策逻辑，维护者逐层阅读即可理解全貌 |
+| 核心原语仅四种 | D7 LLM 解读可靠性 | `Sequence/Fallback/Condition/Stage` 语义少且稳定，解读成本远低于状态转移表、DAG 依赖图或 CSP 事件同步 |
+
+行为树可以作为 **Harness Engineering 在 agent pipeline 场景下的结构化表达**。这也是本 spec 选择行为树作为 `generate-agent-workflow` 默认输出格式的根本原因。
 
 ## 目标
 

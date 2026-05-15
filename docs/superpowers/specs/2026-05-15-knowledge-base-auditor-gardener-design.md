@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-auditor` 和 `knowledge-base-gardener` 是 `knowledge-base-router` package 内部 worker，共同负责知识库熵管理。auditor 默认只读并输出固定报告；gardener 只在用户确认范围后执行维护。
+`knowledge-base-auditor` 和 `knowledge-base-gardener` 是 `knowledge-base-router` package 内部的 skill-shaped internal instruction module，共同负责知识库熵管理。auditor 默认只读并输出固定报告；gardener 只在用户确认范围后执行维护。
 
 ---
 
@@ -31,7 +31,19 @@
 - root、layer、category 索引，如果存在。
 - 配置 root 下的正文文档候选，如果 root 存在。
 - 可选用户关注范围。
-- `knowledge-base-router` 传入的 audit/Bootstrap Gate failure handoff payload。
+- `knowledge-base-router` 传入的标准 `Worker Handoff Payload`。
+
+### Auditor Handoff Payload 约束
+
+- 必须符合 router spec 中 `Worker Handoff Payload Contract`。
+- `source` 必须是 `knowledge-base-router`。
+- `request_origin` 必须保留原始外部来源，不得由 auditor 覆盖。
+- `intent` 必须是 `audit`。
+- `target_worker` 必须是 `knowledge-base-auditor`。
+- `kb_state` 可以是 `Ready`、`Partial` 或 `Broken`；`Empty` 通常不进入 auditor，除非 router 需要报告非默认异常。
+- `confirmation_status` 必须是 `not_required` 或 `confirmed`。
+- `worker_payload.audit_reason` 必须存在；`focus_paths` 和 `gate_evidence` 可选。
+- `missing_fields` 非空时，auditor 只报告缺失字段，不执行审计。
 
 输出：
 
@@ -59,7 +71,21 @@
 - auditor 报告。
 - 用户确认的修复范围。
 - 可选 dry-run/apply 模式。
-- router、auditor 或用户确认后的 gardener handoff payload。
+- router 基于 auditor 报告和用户确认范围传入的标准 `Worker Handoff Payload`。
+
+### Gardener Handoff Payload 约束
+
+- 必须符合 router spec 中 `Worker Handoff Payload Contract`。
+- `source` 必须是 `knowledge-base-router`。
+- `recommended_by` 可记录触发维护的上游建议来源，例如 `knowledge-base-auditor`；它不能替代 `source`。
+- `request_origin` 必须保留原始外部来源，不得由 gardener 覆盖。
+- `intent` 必须是 `maintain`。
+- `kb_state` 可以是 `Ready`、`Partial` 或 `Broken`；Empty 初始化不由 gardener 执行。
+- `target_worker` 必须是 `knowledge-base-gardener`。
+- `confirmation_status` 必须是 `confirmed`，才能执行 `apply`；未确认时只能输出 dry-run 或拒绝。
+- `worker_payload.audit_report` 和 `worker_payload.approved_scope` 必须存在。
+- `worker_payload.mode` 未明确为 `apply` 时，默认为 `dry-run`。
+- `missing_fields` 非空时，gardener 只报告缺失字段，不修改文件。
 
 输出：
 
@@ -79,7 +105,7 @@
 
 禁止操作：
 
-- 不绕过报告或明确范围。
+- 不绕过报告和明确确认范围。
 - 不做未确认的大规模结构改动。
 - 不删除正文而不保留迁移说明或用户确认。
 - 不把语义改写伪装成机械修复。
@@ -157,11 +183,11 @@ Partial 判定规则：
 
 ## Skill 落地目标
 
-本 spec 落成两个 internal worker，不能合并成一个“治理万能入口”。外部审计或维护请求必须先进入 `knowledge-base-router`。
+本 spec 落成两个 skill-shaped internal instruction module，不能合并成一个“治理万能入口”。外部审计或维护请求必须先进入 `knowledge-base-router`。
 
 ### `knowledge-base-auditor`
 
-目标 internal worker skill：
+目标 skill-shaped internal instruction module：
 
 ```yaml
 name: knowledge-base-auditor
@@ -195,13 +221,14 @@ Writing Skills 参数：
 - 目录名必须是 `knowledge-base-auditor`，与 `SKILL.md` frontmatter 的 `name` 一致。
 - `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
 - 如目标运行时支持 Claude Code 扩展，`SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`。
-- 缺少 `knowledge-base-router` handoff payload 时，必须拒绝执行并要求先进入 router。
+- 缺少符合 router spec 的 `Worker Handoff Payload`，或缺少 `source`、`request_origin`、`intent`、`kb_state`、`target_worker`、`confirmation_status`、`worker_payload.audit_reason` 时，必须拒绝执行并要求先进入 router。
 
 `SKILL.md` 必备章节：
 
 - Overview
 - When to Use
 - Invocation Control
+- Handoff Payload Validation
 - Report-Only Contract
 - Audit Inputs
 - Audit Checks
@@ -220,11 +247,11 @@ Writing Skills 参数：
 
 ### `knowledge-base-gardener`
 
-目标 internal worker skill：
+目标 skill-shaped internal instruction module：
 
 ```yaml
 name: knowledge-base-gardener
-description: Use only when knowledge-base-router or knowledge-base-auditor hands off a confirmed project knowledge-base maintenance repair scope.
+description: Use only when knowledge-base-router hands off a confirmed project knowledge-base maintenance repair scope based on an auditor report.
 ```
 
 Writing Skills 参数：
@@ -233,7 +260,7 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-gardener` |
 | Skill 类型 | Discipline-enforcing |
-| 触发条件 | `knowledge-base-router` 或 `knowledge-base-auditor` 传入 auditor 报告，并且用户已确认指定维护修复范围。 |
+| 触发条件 | `knowledge-base-router` 基于 auditor 报告传入维护 payload，并且用户已确认指定修复范围。 |
 | 要解决的具体问题 | 在确认范围内修复知识库熵问题，同时防止 agent 擅自扩大范围、语义改写或批量破坏文档。 |
 | 反面案例 | 用户或 agent 直接要求整理知识库时，应先进入 router；没有 auditor 报告、没有用户确认范围、只是想写新正文或发布草稿时，不用 gardener。 |
 | 已知 rationalization | “用户说整理一下我可以跳过 router/auditor”、“用户说整理一下就是允许我全库改”、“报告只列了几个文件但相关文件我也一起改”、“摘要可以顺手重写”。 |
@@ -254,13 +281,14 @@ Writing Skills 参数：
 - 目录名必须是 `knowledge-base-gardener`，与 `SKILL.md` frontmatter 的 `name` 一致。
 - `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
 - 如目标运行时支持 Claude Code 扩展，`SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`。
-- 缺少 `knowledge-base-router` 或 `knowledge-base-auditor` handoff payload，或缺少用户确认范围时，必须拒绝执行并要求回到 router/auditor。
+- 缺少符合 router spec 的 `Worker Handoff Payload`，缺少 `source`、`request_origin`、`intent`、`kb_state`、`target_worker`、`confirmation_status`、`worker_payload.audit_report`、`worker_payload.approved_scope`，或缺少用户确认范围时，必须拒绝执行并要求回到 router；auditor 只能补充报告，不能直接授权 gardener 执行。
 
 `SKILL.md` 必备章节：
 
 - Overview
 - When to Use
 - Invocation Control
+- Handoff Payload Validation
 - Preconditions
 - Dry-Run First Rule
 - Allowed Repairs

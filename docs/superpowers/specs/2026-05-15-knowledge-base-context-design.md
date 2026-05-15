@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-context` 是 `knowledge-base-router` package 内部只读 worker，用于按 router handoff 按需加载项目知识库正文或摘要。它解决“Agent 不知道看什么、怎么找”的问题，但不能写文件、不能直接扫描目录、不能把全库塞进上下文。
+`knowledge-base-context` 是 `knowledge-base-router` package 内部的 skill-shaped internal instruction module，用于按 router handoff 按需加载项目知识库正文或摘要。它解决“Agent 不知道看什么、怎么找”的问题，但不能写文件、不能直接扫描目录、不能把全库塞进上下文。
 
 ---
 
@@ -21,7 +21,7 @@
 - `query`：搜索关键词，可选。
 - `category`：分类名，可选。
 - `path`：明确正文路径，可选，但必须位于配置 root 和 category 下。
-- `knowledge-base-router` 传入的 read/search/browse handoff payload。
+- `knowledge-base-router` 传入的标准 `Worker Handoff Payload`。
 
 输出：
 
@@ -36,6 +36,32 @@
 - 不通过 `find` 或 `ls` 发现正文。
 - 不加载无限文档。
 - 不编造不存在的文档。
+
+---
+
+## Handoff Payload 约束
+
+`knowledge-base-context` 只接受符合 router spec 中 `Worker Handoff Payload Contract` 的 payload。
+
+通用字段要求：
+
+- `source` 必须是 `knowledge-base-router`。
+- `request_origin` 必须保留原始外部来源，不得由 context 覆盖。
+- `intent` 必须是 `read`。
+- `kb_state` 必须是 `Ready`。
+- `target_worker` 必须是 `knowledge-base-context`。
+- `confirmation_status` 必须是 `not_required` 或 `confirmed`；若为 `required`，context 不执行。
+- `missing_fields` 非空时，context 只报告缺失字段，不读取正文。
+
+`worker_payload` 要求：
+
+- `mode` 必须存在，且只能是 `browse`、`search`、`category-search` 或 `exact-path`。
+- `search` 必须带 `query`。
+- `category-search` 必须带 `query` 和 `category`。
+- `exact-path` 必须带 `path`。
+- `max_full_documents` 默认 3，不能超过 3。
+
+context 输出 handoff recommendation 时，不得覆盖 `request_origin`；需要 author、auditor 或用户澄清时，只输出 recommendation，不自行启动下一个 worker。
 
 ---
 
@@ -121,7 +147,7 @@ No knowledge base documents matched "<query>".
 
 ## Skill 落地目标
 
-目标 internal worker skill：
+目标 skill-shaped internal instruction module：
 
 ```yaml
 name: knowledge-base-context
@@ -155,13 +181,14 @@ Writing Skills 参数：
 - 目录名必须是 `knowledge-base-context`，与 `SKILL.md` frontmatter 的 `name` 一致。
 - `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
 - 如目标运行时支持 Claude Code 扩展，`SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`。
-- 缺少 `knowledge-base-router` handoff payload 时，必须拒绝执行并要求先进入 router。
+- 缺少符合 router spec 的 `Worker Handoff Payload`，或缺少 `source`、`request_origin`、`intent`、`kb_state`、`target_worker`、`confirmation_status`、`worker_payload.mode` 时，必须拒绝执行并要求先进入 router。
 
 `SKILL.md` 必备章节：
 
 - Overview
 - When to Use
 - Invocation Control
+- Handoff Payload Validation
 - Read-Only Contract
 - Browse Mode
 - Search Mode

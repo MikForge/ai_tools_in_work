@@ -1,0 +1,46 @@
+knowledge_base:
+  root: docs/00-project-knowledge-base
+  index: README.md
+  filename_style: kebab-case
+  index_format: markdown-list
+  categories:
+    - name: project-overview
+      path: 01-project-layer/01-project-overview
+      index: README.md
+      description: Project background, goals, value, and boundaries.
+    - name: core-process
+      path: 01-project-layer/02-core-process
+      index: README.md
+      description: Core workflows, state transitions, and business processes.
+    - name: architecture
+      path: 01-project-layer/03-architecture
+      index: README.md
+      description: Architecture, module relationships, and layering.
+    - name: middleware-config
+      path: 02-technology-layer/01-middleware-config
+      index: README.md
+      description: Build, runtime, middleware, and environment configuration.
+    - name: coding-standards
+      path: 02-technology-layer/02-coding-standards
+      index: README.md
+      description: Coding conventions, naming rules, and implementation patterns.
+    - name: third-party-libraries
+      path: 02-technology-layer/03-third-party-libraries
+      index: README.md
+      description: Third-party library, SDK, and integration notes.
+    - name: api-docs
+      path: 02-technology-layer/04-api-docs
+      index: README.md
+      description: API documents, protocols, and interface contracts.
+    - name: prd-docs
+      path: 03-assets-layer/01-prd-docs
+      index: README.md
+      description: Product requirements and feature descriptions.
+    - name: technical-solutions
+      path: 03-assets-layer/02-technical-solutions
+      index: README.md
+      description: Technical solutions, design notes, and option analysis.
+    - name: test-cases
+      path: 03-assets-layer/03-test-cases
+      index: README.md
+      description: Test plans, cases, acceptance criteria, and validation records.

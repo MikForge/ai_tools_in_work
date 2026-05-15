@@ -17,6 +17,7 @@
 | 模块名 | {{ModuleName}} |
 | ViewId | {{ViewId}} |
 | needs_proxy | {{NeedsProxy}} |
+| needs_command | {{NeedsCommand}} |
 | has_ui | {{HasUI}} |
 | ui_complexity | {{UIComplexity}} |
 | sub_modules | {{SubModules}} |

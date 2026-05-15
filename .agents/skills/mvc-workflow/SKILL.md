@@ -12,6 +12,7 @@ Route MVC module workflow requests. Do not perform business analysis or implemen
 ## Must Read
 
 - `CLAUDE.md`
+- `.claude/rules/*`
 - `docs/mvc-workflows/INDEX.md`
 
 ## Routes

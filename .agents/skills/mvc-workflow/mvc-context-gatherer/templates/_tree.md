@@ -1,6 +1,6 @@
 # {{ModuleName}} 行为树
 
-Sequence: Proxy → View+Prefab → Mediator
+Sequence: Proxy → View+Prefab → Mediator → Command
 
 ├── Proxy/
 │   Condition: needs_proxy? = {{NeedsProxy}}
@@ -11,6 +11,12 @@ Sequence: Proxy → View+Prefab → Mediator
 │   MUST: Proxy = done | skipped
 │   → Execute
 │
-└── Mediator/
-    MUST: View+Prefab = done
-    → Execute
+├── Mediator/
+│   MUST: View+Prefab = done
+│   → Execute
+│
+└── Command/
+    Condition: needs_command? = {{NeedsCommand}}
+    MUST: Mediator = done | skipped
+    ├── true  → Execute
+    └── false → Skip（_status = skipped）

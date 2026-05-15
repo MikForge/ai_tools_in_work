@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-init` 是 `knowledge-base-router` package 内部 worker，只负责 Empty 状态或 init-compatible Partial 下从零创建知识库 harness。它不迁移旧文档，不合并已有目录，不修复 repair-required Partial/Broken 状态。
+`knowledge-base-init` 是 `knowledge-base-router` package 内部的 skill-shaped internal instruction module，只负责 Empty 状态或 init-compatible Partial 下从零创建知识库 harness。它不迁移旧文档，不合并已有目录，不修复 repair-required Partial/Broken 状态。
 
 ---
 
@@ -18,9 +18,9 @@
 
 输入：
 
-- router 已判定 Bootstrap Gate = Empty，或 auditor 已判定为 init-compatible Partial。
+- router 已判定 Bootstrap Gate = Empty，或基于 auditor 报告确认 init-compatible Partial。
 - 用户明确初始化请求。
-- router 或 auditor 传入的 handoff payload。
+- router 传入的标准 `Worker Handoff Payload`。
 - 默认配置模板。
 - init-compatible Partial 中已存在且可解析的 `.knowledge-base.yml`，只读使用，不修改。
 
@@ -39,6 +39,30 @@
 - 不写正文文档。
 - 不处理迁移、合并、修复。
 - 不在 repair-required Partial 或 Broken 状态下强行初始化。
+
+---
+
+## Handoff Payload 约束
+
+`knowledge-base-init` 只接受符合 router spec 中 `Worker Handoff Payload Contract` 的 payload。
+
+通用字段要求：
+
+- `source` 必须是 `knowledge-base-router`。
+- `recommended_by` 可记录触发初始化的上游建议来源，例如 `knowledge-base-auditor`；它不能替代 `source`。
+- `request_origin` 必须保留原始外部来源，不得由 init 覆盖。
+- `intent` 必须是 `init`。
+- `target_worker` 必须是 `knowledge-base-init`。
+- `kb_state` 只能是 `Empty` 或 auditor 判定的 init-compatible `Partial`。
+- `confirmation_status` 必须是 `confirmed` 或 `not_required`；若为 `required`，init 不执行。
+- `missing_fields` 非空时，init 只报告缺失字段，不创建文件。
+
+`worker_payload` 要求：
+
+- `init_mode` 必须存在，且只能是 `empty` 或 `init-compatible-partial`。
+- `default_root` 和 `config_template` 可选；没有时使用本 spec 的默认模板。
+
+init 输出后续 handoff recommendation 时，不得覆盖 `request_origin`；只能报告缺失字段、完成结果或建议回到 router，由 router 再决定是否进入 auditor/gardener。
 
 ---
 
@@ -71,7 +95,7 @@ docs/00-project-knowledge-base/
 
 ## 工作流
 
-1. 确认 router 传入 Empty 状态，或 auditor 报告明确标记 init-compatible Partial。
+1. 确认 router 传入 Empty 状态，或 router 基于 auditor 报告明确标记 init-compatible Partial。
 2. 再次检查要写入的配置、目录和索引不会覆盖既有文件。
 3. 若 `.knowledge-base.yml` 缺失，写入默认配置；若已存在且 auditor 标记可沿用，只读使用。
 4. 按默认配置或已存在配置创建缺失的 root、layer、category 目录。
@@ -161,11 +185,11 @@ init-compatible Partial 仅允许以下情况：
 
 ## Skill 落地目标
 
-目标 internal worker skill：
+目标 skill-shaped internal instruction module：
 
 ```yaml
 name: knowledge-base-init
-description: Use only when knowledge-base-router or knowledge-base-auditor hands off an Empty or init-compatible Partial project knowledge-base initialization.
+description: Use only when knowledge-base-router hands off an Empty or auditor-reported init-compatible Partial project knowledge-base initialization.
 ```
 
 Writing Skills 参数：
@@ -174,7 +198,7 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-init` |
 | Skill 类型 | Technique |
-| 触发条件 | `knowledge-base-router` 判定 Empty 并确认初始化意图，或 `knowledge-base-auditor` 报告标记 init-compatible Partial。 |
+| 触发条件 | `knowledge-base-router` 判定 Empty 并确认初始化意图，或 router 基于 `knowledge-base-auditor` 报告标记 init-compatible Partial。 |
 | 要解决的具体问题 | 从零创建可被 router/context/publisher/auditor 共同识别的配置、目录和索引 scaffold。 |
 | 反面案例 | 用户或 agent 直接提出初始化请求时，应先进入 router；已存在需要迁移、合并、索引修复或配置修复的结构时，不使用 init。 |
 | 已知 rationalization | “用户就是要初始化我可以跳过 router”、“root 已经有了我顺便覆盖一下”、“缺几个 README 我直接补，不用审计”、“初始化时顺手写第一篇正文”。 |
@@ -200,13 +224,14 @@ Writing Skills 参数：
 - 目录名必须是 `knowledge-base-init`，与 `SKILL.md` frontmatter 的 `name` 一致。
 - `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
 - 如目标运行时支持 Claude Code 扩展，`SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`。
-- 缺少 `knowledge-base-router` 或 `knowledge-base-auditor` handoff payload 时，必须拒绝执行并要求先进入 router。
+- 缺少符合 router spec 的 `Worker Handoff Payload`，或缺少 `source`、`request_origin`、`intent`、`kb_state`、`target_worker`、`confirmation_status`、`worker_payload.init_mode` 时，必须拒绝执行并要求回到 router；auditor 只能补充 init-compatible 报告，不能直接授权 init 执行。
 
 `SKILL.md` 必备章节：
 
 - Overview
 - When to Use
 - Invocation Control
+- Handoff Payload Validation
 - Empty-State Precondition
 - Template Files
 - Workflow
