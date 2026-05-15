@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-publisher` 是唯一负责把正文草稿落盘到知识库的普通写入 skill。它负责分类、命名、冲突处理、正文写入、索引更新和发布自检。
+`knowledge-base-publisher` 是 `knowledge-base-router` package 内部 worker，也是唯一负责把确认正文草稿落盘到知识库的普通写入 worker。它负责分类、命名、冲突处理、正文写入、索引更新和发布自检。
 
 ---
 
@@ -23,6 +23,7 @@
 - 目标分类，可选。
 - 文件名，可选。
 - 用户确认的覆盖或另存选择。
+- `knowledge-base-router` 传入的 publish/update/rename/index-only handoff payload。
 
 输出：
 
@@ -151,11 +152,11 @@ publisher 只更新：
 
 ## Skill 落地目标
 
-目标 skill：
+目标 internal worker skill：
 
 ```yaml
 name: knowledge-base-publisher
-description: Use when a confirmed knowledge-base draft should be added, updated, renamed, or indexed in an already bootstrapped project knowledge base.
+description: Use only when knowledge-base-router hands off a confirmed knowledge-base draft or index-only request for a Ready project knowledge base.
 ```
 
 Writing Skills 参数：
@@ -164,16 +165,16 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-publisher` |
 | Skill 类型 | Discipline-enforcing |
-| 触发条件 | 用户已有确认正文草稿，并要求新增、更新、重命名或只补索引到 Ready 状态知识库。 |
+| 触发条件 | `knowledge-base-router` 判定 Ready，并传入确认正文草稿或 index-only 请求，要求新增、更新、重命名或只补索引。 |
 | 要解决的具体问题 | 防止 agent 写正文却不更新索引、覆盖冲突未确认、创建未配置分类或把发布混成全库治理。 |
-| 反面案例 | 知识库不是 Ready、缺索引文件、需要跨分类迁移/去重/归档时，不使用 publisher 直接修。 |
-| 已知 rationalization | “先写文件再说”、“索引稍后补”、“分类不存在我建一个”、“rename 顺便跨目录移动”。 |
+| 反面案例 | 用户或 agent 直接要求保存到知识库时，应先进入 router；知识库不是 Ready、缺索引文件、需要跨分类迁移/去重/归档时，不使用 publisher 直接修。 |
+| 已知 rationalization | “用户要保存我可以直接 publisher”、“先写文件再说”、“索引稍后补”、“分类不存在我建一个”、“rename 顺便跨目录移动”。 |
 | 代码示例场景 | 用户确认一篇草稿保存到 `architecture`，publisher 解析分类和文件名，写正文，更新分类索引并自检。 |
 
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-publisher/
+.agents/skills/knowledge-base-router/publisher/
 ├── SKILL.md
 └── zh-CN.md
 ```
@@ -194,6 +195,7 @@ Writing Skills 参数：
 
 依赖契约章节：
 
+- 落地 reference：`../references/contract.md`
 - [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
 - [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
 - [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)

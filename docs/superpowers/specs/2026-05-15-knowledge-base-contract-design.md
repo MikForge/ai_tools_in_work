@@ -11,7 +11,7 @@
 
 定义所有知识库 skill 共享的稳定契约，避免 router、context、publisher、auditor、gardener 各自解释配置、索引、正文边界和审计报告格式。
 
-本 spec 是后续所有子 spec 的公共依赖。实现任何知识库 skill 前，必须先遵守本契约。
+本 spec 是后续所有子 spec 的公共依赖。实现 `knowledge-base-router` package 和任何 internal worker 前，必须先遵守本契约。
 
 ---
 
@@ -228,14 +228,18 @@ yes | no
 
 ## 使用方式
 
-本 spec 是其他知识库 spec 和 implementation plan 的共享契约来源，不落成用户直接调用的 skill，也不创建 `.agents/skills/knowledge-base-contract/`。
+本 spec 是其他知识库 spec 和 implementation plan 的共享契约来源，不落成用户直接调用的 skill，也不创建 `.agents/skills/knowledge-base-contract/`。在实际 skill package 中，它落成 `knowledge-base-router` 的 supporting reference 文件：
+
+```text
+.agents/skills/knowledge-base-router/references/contract.md
+```
 
 使用规则：
 
 - 子 spec 必须直接链接本 spec 的相关章节，例如 [配置契约](#配置契约)、[索引模型](#索引模型)、[Audit Report Protocol](#audit-report-protocol)、[文档异常分类](#文档异常分类)。
-- 实现 `knowledge-base-router`、`knowledge-base-context`、`knowledge-base-publisher`、`knowledge-base-auditor`、`knowledge-base-gardener`、`knowledge-base-init` 时，必须把本 spec 作为必读上下文。
+- 实现 `knowledge-base-router` 和内部 worker 时，必须把本 spec 或 `references/contract.md` 作为必读上下文。
 - Writing Skills 不能根据本 spec 生成 `knowledge-base-contract/SKILL.md`。
-- 如果契约需要变更，先修改本 spec，再同步检查所有子 spec 的依赖章节，不在单个 skill 中分叉契约内容。
+- 如果契约需要变更，先修改本 spec，再同步检查 router、worker 子 spec 和 `references/contract.md`，不在单个 worker 中分叉契约内容。
 
 ---
 
@@ -248,4 +252,4 @@ yes | no
 - Audit Report Protocol 包含 `Suggested Next Skill`，并能把 init-compatible Partial 路由到 init。
 - Audit Report Protocol 包含 `Severity`，并能表达 blocking、warning、info。
 - 文档异常分类覆盖正文漂移、质量、重复、过期、孤儿、错分六类问题。
-- 其他 knowledge-base skill 以本 spec 的章节作为必读上下文，不生成或维护独立的 contract skill 或契约副本。
+- `knowledge-base-router` package 以 `references/contract.md` 承载本契约；不生成独立 contract skill，也不让 worker 维护契约副本。

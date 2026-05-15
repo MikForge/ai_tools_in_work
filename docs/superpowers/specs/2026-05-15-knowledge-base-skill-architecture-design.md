@@ -29,7 +29,7 @@
 
 项目知识库 skill 不能只是一组“会读写 Markdown 的工具”。Agent 的典型失败包括：一步到位做太多、跳过索引直接扫目录、写完正文忘记更新 README、看到局部成功就宣布完成、治理任务未经确认就批量改库。按照 Harness Engineering 的思路，这些失败不应该靠更强模型解决，而应该靠运行环境里的约束、反馈回路、上下文工程和熵管理解决。
 
-因此，本体系把知识库能力重构为 **Knowledge Base Skill Harness**：人类掌舵，Agent 执行；router 控制入口，context 按需读取，author 只产草稿，publisher 才能落盘，auditor 默认报告，gardener 在确认后维护。
+因此，本体系把知识库能力重构为 **Knowledge Base Skill Harness**：人类掌舵，Agent 执行；`knowledge-base-router` 是唯一公共入口，context 按需读取，author 只产草稿，publisher 才能落盘，auditor 默认报告，gardener 在确认后维护。
 
 ---
 
@@ -37,13 +37,13 @@
 
 | 子 spec | 范围 | 依赖 |
 | --- | --- | --- |
-| [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) | 共享契约：`.knowledge-base.yml`、索引层级、正文边界、命名、Audit Report Protocol；不是可调用 skill | 本文 |
-| [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md) | `knowledge-base-router`、Bootstrap Gate、Ready/Empty/Partial/Broken 判定、路由 | contract |
-| [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md) | `knowledge-base-init` 从零创建配置、目录、索引模板 | contract、router |
-| [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md) | `knowledge-base-context` 只读检索、浏览、上下文加载上限 | contract、router |
-| [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md) | `knowledge-base-author` 正文草稿、事实保真、修订草稿 | contract、context |
-| [knowledge-base-publisher-design](2026-05-15-knowledge-base-publisher-design.md) | `knowledge-base-publisher` 分类、命名、冲突处理、写入、索引、自检 | contract、author |
-| [knowledge-base-auditor-gardener-design](2026-05-15-knowledge-base-auditor-gardener-design.md) | `knowledge-base-auditor` report-only 与 `knowledge-base-gardener` 确认后维护 | contract |
+| [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) | 共享契约：`.knowledge-base.yml`、索引层级、正文边界、命名、Audit Report Protocol；落成 router package reference | 本文 |
+| [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md) | `knowledge-base-router` 公共入口、Bootstrap Gate、Ready/Empty/Partial/Broken 判定、路由 | contract |
+| [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md) | internal `knowledge-base-init` 从零创建配置、目录、索引模板 | contract、router |
+| [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md) | internal `knowledge-base-context` 只读检索、浏览、上下文加载上限 | contract、router |
+| [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md) | internal `knowledge-base-author` 正文草稿、事实保真、修订草稿 | contract、context |
+| [knowledge-base-publisher-design](2026-05-15-knowledge-base-publisher-design.md) | internal `knowledge-base-publisher` 分类、命名、冲突处理、写入、索引、自检 | contract、author |
+| [knowledge-base-auditor-gardener-design](2026-05-15-knowledge-base-auditor-gardener-design.md) | internal `knowledge-base-auditor` report-only 与 `knowledge-base-gardener` 确认后维护 | contract |
 
 Harness 版本开发应以本索引和上表子 spec 为准。
 
@@ -66,7 +66,9 @@ knowledge-base-router
         -> maintain: knowledge-base-auditor -> knowledge-base-gardener
 ```
 
-`knowledge-base-router` 是用户手动调用入口。若未来需要保留旧名 `knowledge-base`，它只能作为薄别名转发到 `knowledge-base-router`，不持有正文、发布或治理规则。
+所有外部知识库请求都必须进入 `knowledge-base-router`。这里的外部请求包括用户自然语言请求、agent 自发的知识库读写维护请求，以及其他 workflow/skill 想读取或沉淀项目知识时发起的请求。
+
+`knowledge-base-router` 只做状态判断、意图分类、流程编排和 handoff，不亲自生成正文、全文读取、写文件或治理修复。`knowledge-base-context`、`knowledge-base-author`、`knowledge-base-publisher`、`knowledge-base-auditor`、`knowledge-base-gardener`、`knowledge-base-init` 是 internal worker，只接受 router 或上游明确 handoff。
 
 ---
 
@@ -83,21 +85,50 @@ knowledge-base-router
 
 ---
 
-## 可落地 Skill 列表
+## 可落地 Skill Package
 
-[knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 是共享契约 spec，不生成 `.agents/skills/knowledge-base-contract/`，也不作为用户可调用 skill。所有可落地 skill 必须把它作为规范来源读取，而不是复制出各自版本的配置、索引或报告协议。
+[knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 是共享契约 spec，不生成 `.agents/skills/knowledge-base-contract/`，也不作为用户可调用 skill。它落成 `knowledge-base-router` package 内的 reference 文件，供 router 和 internal workers 共用。
 
 本体系使用稳定的 `knowledge-base-*` 家族前缀，优先保证一组 skill 在路由、文档和用户心智里的可发现性；这是对通用 skill 命名建议的有意例外。
 
-| Skill | 职责 | 权限 |
+目标目录：
+
+```text
+.agents/skills/knowledge-base-router/
+├── SKILL.md
+├── zh-CN.md
+├── references/
+│   └── contract.md
+├── init/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── context/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── author/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── publisher/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── auditor/
+│   ├── SKILL.md
+│   └── zh-CN.md
+└── gardener/
+    ├── SKILL.md
+    └── zh-CN.md
+```
+
+| Component | 职责 | 权限 |
 | --- | --- | --- |
-| `knowledge-base-router` | 环境判定、意图识别、路由 | 只读轻量状态，不写文件 |
-| `knowledge-base-init` | 从零初始化配置、目录、索引模板 | 仅 Empty 状态下写结构文件 |
-| `knowledge-base-context` | 按需读取知识库正文或摘要 | 只读，不直接扫目录 |
-| `knowledge-base-author` | 生成或改写 Markdown 正文草稿 | 不落盘，不决定最终路径 |
-| `knowledge-base-publisher` | 分类、命名、写入、冲突处理、索引更新 | 只改目标正文和相关索引 |
-| `knowledge-base-auditor` | 审计配置、索引、正文一致性 | 默认只读，输出报告 |
-| `knowledge-base-gardener` | 去重、迁移、索引修复、腐烂修复 | 基于报告或明确确认执行 |
+| `knowledge-base-router` | 公共入口、环境判定、意图识别、路由编排 | 只读轻量状态，不写文件 |
+| `references/contract.md` | 共享配置、索引、命名和报告协议 | 只读 reference，不是 skill |
+| `init` / `knowledge-base-init` | 从零初始化配置、目录、索引模板 | 仅 Empty 或 init-compatible Partial 状态下写 scaffold |
+| `context` / `knowledge-base-context` | 按需读取知识库正文或摘要 | 只读，不直接扫目录 |
+| `author` / `knowledge-base-author` | 生成或改写 Markdown 正文草稿 | 不落盘，不决定最终路径 |
+| `publisher` / `knowledge-base-publisher` | 分类、命名、写入、冲突处理、索引更新 | 只改目标正文和相关索引 |
+| `auditor` / `knowledge-base-auditor` | 审计配置、索引、正文一致性 | 默认只读，输出报告 |
+| `gardener` / `knowledge-base-gardener` | 去重、迁移、索引修复、腐烂修复 | 基于报告或明确确认执行 |
 
 ---
 
@@ -117,7 +148,9 @@ router
 
 - `router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
 - 所有 skill 必须引用共享 contract spec 的相关章节，不能自行定义另一套配置、索引、命名或报告协议。
-- `init` 只能处理 Empty 状态，不能覆盖或修复 Partial/Broken。
+- 用户、agent、其他 workflow/skill 的知识库请求都必须先进入 `router`，不得直接触发 internal worker。
+- internal worker 只能在 router、auditor 或明确 handoff 后执行。
+- `init` 只能处理 Empty 或 init-compatible Partial，不能覆盖或修复 repair-required Partial/Broken。
 - `context` 只读配置和索引，不调用 `publisher` 或 `gardener`。
 - `author` 可以使用 `context` 的结果，但不能自己全库扫描或落盘。
 - `publisher` 可读取目标文件和相关索引，但不能做全库治理。
@@ -139,8 +172,8 @@ router
 
 ## 推荐落地顺序
 
-1. 先确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约，确保所有 skill 共用同一配置、索引和报告协议。
-2. 实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，把入口和 Bootstrap Gate 固定下来。
+1. 先确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约，落成 `references/contract.md`。
+2. 实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，把唯一公共入口和 Bootstrap Gate 固定下来。
 3. 实现 [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md)，让 Empty 状态可进入 Ready。
 4. 实现 [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md)，提供安全只读上下文。
 5. 实现 [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md)，提供正文草稿生成。

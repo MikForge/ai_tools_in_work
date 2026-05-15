@@ -10,12 +10,12 @@
 
 ## 目标
 
-`knowledge-base-router` 是知识库体系的唯一用户入口。它负责环境判定、意图识别和路由，不负责正文生成、文件写入或治理修复。
+`knowledge-base-router` 是知识库体系的唯一公共入口。用户、agent 和其他 workflow/skill 的外部知识库请求都必须先进入 router。它负责环境判定、意图识别和路由编排，不负责正文生成、全文读取、文件写入或治理修复。
 
 核心目标：
 
 1. 在任何操作前执行 Bootstrap Gate。
-2. 把用户意图路由到正确专职 skill。
+2. 把用户或 agent 的知识库意图路由到正确 internal worker。
 3. 遇到 Empty、Partial、Broken 时阻断普通读写。
 4. 只在必要歧义处一次问一个问题。
 
@@ -26,24 +26,29 @@
 输入：
 
 - 用户请求。
+- agent 或其他 workflow/skill 发起的知识库请求。
 - 当前仓库根目录。
 - `.knowledge-base.yml` 是否存在。
 - 默认 root `docs/00-project-knowledge-base/` 是否存在。
+- 可选 handoff payload，例如 query、草稿、审计报告或用户确认范围。
 
 输出：
 
 - 环境状态：Ready、Empty、Partial、Broken。
 - 意图类型：init、read、author、publish、audit、maintain。
-- 下一步 skill。
+- 下一步 internal worker。
 - 必要时的单个澄清问题。
 - 触发 auditor 时的 blocking/warning/info 建议等级。
+- 传给 worker 的 handoff payload。
 
 禁止：
 
 - 不生成正文。
+- 不读取正文全文。
 - 不写文件。
 - 不直接修复知识库。
 - 不绕过 Bootstrap Gate。
+- 不把 external request 交给 worker 前省略 handoff 边界。
 
 ---
 
@@ -94,6 +99,13 @@ Partial 子类型：
 | 审计 | “检查知识库”、“哪里不对劲” | `knowledge-base-auditor` |
 | 治理 | “修复索引”、“去重”、“整理知识库” | `knowledge-base-auditor -> knowledge-base-gardener` |
 
+入口规则：
+
+- 用户自然语言请求必须进入 router。
+- agent 自发需要读取、写入、沉淀或维护知识库时，也必须进入 router。
+- 其他 workflow/skill 想使用项目知识库时，也必须进入 router。
+- 只有 router、auditor 或上游 worker 已经给出明确 handoff payload 时，internal worker 才能被直接调用。
+
 歧义规则：
 
 - 如果用户要求“写入知识库”但没有正文，先路由 author 生成草稿。
@@ -129,11 +141,11 @@ Partial 子类型：
 
 ## Skill 落地目标
 
-目标 skill：
+目标 public skill：
 
 ```yaml
 name: knowledge-base-router
-description: Use when the user asks to work with the project knowledge base, is unsure which knowledge-base skill to invoke, or repository knowledge-base state must be checked before read/write/maintenance.
+description: Use when a user, agent, workflow, or skill needs to read, write, publish, audit, maintain, or initialize the project knowledge base, or when knowledge-base state must be checked before action.
 ```
 
 Writing Skills 参数：
@@ -142,9 +154,9 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-router` |
 | Skill 类型 | Discipline-enforcing |
-| 触发条件 | 用户提出知识库相关读、写、发布、审计、维护或初始化请求；或用户不确定该用哪个 knowledge-base skill。 |
-| 要解决的具体问题 | 防止 agent 跳过 Bootstrap Gate、直接扫目录、直接写文件或把治理请求路由到错误 skill。 |
-| 反面案例 | 用户已经明确调用某个下游 skill 且状态已由 router 判定时，不再重复路由。 |
+| 触发条件 | 用户、agent、workflow 或其他 skill 提出知识库相关读、写、发布、审计、维护或初始化请求；或需要在动作前判断知识库状态。 |
+| 要解决的具体问题 | 防止 agent 跳过 Bootstrap Gate、直接扫目录、直接写文件、直接调用 worker 或把治理请求路由到错误 worker。 |
+| 反面案例 | 已经处于 router 编排链路内部，且上游已给出明确 worker handoff payload 时，不重复进入 router。 |
 | 已知 rationalization | “只是查一下不用检查状态”、“我可以直接看看目录”、“先写了再补索引”。 |
 | 代码示例场景 | 无 `.knowledge-base.yml` 且无默认 root 时，用户说“查项目知识库”，router 只询问是否初始化。 |
 
@@ -153,7 +165,27 @@ Writing Skills 参数：
 ```text
 .agents/skills/knowledge-base-router/
 ├── SKILL.md
-└── zh-CN.md
+├── zh-CN.md
+├── references/
+│   └── contract.md
+├── init/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── context/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── author/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── publisher/
+│   ├── SKILL.md
+│   └── zh-CN.md
+├── auditor/
+│   ├── SKILL.md
+│   └── zh-CN.md
+└── gardener/
+    ├── SKILL.md
+    └── zh-CN.md
 ```
 
 `SKILL.md` 必备章节：
@@ -162,12 +194,15 @@ Writing Skills 参数：
 - When to Use
 - Bootstrap Gate
 - Intent Routing
+- External Entry Rules
 - Clarification Rules
 - Handoff Targets
+- Worker Handoff Payloads
 - Common Mistakes
 
 依赖契约章节：
 
+- 落地 reference：`references/contract.md`
 - [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
 - [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
 - [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)

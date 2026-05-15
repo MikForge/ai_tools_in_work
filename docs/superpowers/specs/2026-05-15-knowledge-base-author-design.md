@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-author` 只负责生成或修订知识库正文草稿。它不落盘，不更新索引，不决定最终分类和文件名。
+`knowledge-base-author` 是 `knowledge-base-router` package 内部 worker，只负责生成或修订知识库正文草稿。它不落盘，不更新索引，不决定最终分类和文件名。
 
 ---
 
@@ -23,6 +23,7 @@
 - 会话总结。
 - `knowledge-base-context` 读取的已有正文或相关背景。
 - 可选写作目标：新增、修订、摘要化、结构化。
+- `knowledge-base-router` 传入的 author/revise handoff payload。
 
 输出：
 
@@ -123,11 +124,11 @@ Reason: 文档描述模块关系和分层约束。
 
 ## Skill 落地目标
 
-目标 skill：
+目标 internal worker skill：
 
 ```yaml
 name: knowledge-base-author
-description: Use when user material, code analysis, session notes, or loaded knowledge should become a knowledge-base Markdown draft without publishing it.
+description: Use only when knowledge-base-router hands off user material, code analysis, session notes, or loaded knowledge that should become a knowledge-base Markdown draft.
 ```
 
 Writing Skills 参数：
@@ -136,16 +137,16 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-author` |
 | Skill 类型 | Technique |
-| 触发条件 | 用户要求把材料、代码分析、会话总结或已有知识整理成知识库正文草稿。 |
+| 触发条件 | `knowledge-base-router` 判定需要生成或修订知识库正文草稿，并传入材料、上下文或修订目标。 |
 | 要解决的具体问题 | 把写作和落盘分离，防止 agent 生成正文后直接决定路径、写文件或更新索引。 |
-| 反面案例 | 用户已经提供确认草稿并要求保存时，应进入 publisher；用户要求检查异常时，应进入 auditor。 |
-| 已知 rationalization | “既然草稿写好了我顺手保存”、“分类很明显我直接定路径”、“材料不足但我可以补一点常识”。 |
+| 反面案例 | 用户或 agent 直接要求整理到知识库时，应先进入 router；用户已经提供确认草稿并要求保存时，应由 router 转 publisher；检查异常时转 auditor。 |
+| 已知 rationalization | “用户要写草稿我可以跳过 router”、“既然草稿写好了我顺手保存”、“分类很明显我直接定路径”、“材料不足但我可以补一点常识”。 |
 | 代码示例场景 | 给一段代码分析，author 输出 Markdown 草稿、建议标题、建议摘要和可选分类建议，但不写文件。 |
 
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-author/
+.agents/skills/knowledge-base-router/author/
 ├── SKILL.md
 └── zh-CN.md
 ```
@@ -164,5 +165,6 @@ Writing Skills 参数：
 
 依赖契约章节：
 
+- 落地 reference：`../references/contract.md`
 - [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
 - [文档异常分类](2026-05-15-knowledge-base-contract-design.md#文档异常分类)

@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-context` 是纯只读 skill，用于按需加载项目知识库正文或摘要。它解决“Agent 不知道看什么、怎么找”的问题，但不能写文件、不能直接扫描目录、不能把全库塞进上下文。
+`knowledge-base-context` 是 `knowledge-base-router` package 内部只读 worker，用于按 router handoff 按需加载项目知识库正文或摘要。它解决“Agent 不知道看什么、怎么找”的问题，但不能写文件、不能直接扫描目录、不能把全库塞进上下文。
 
 ---
 
@@ -21,6 +21,7 @@
 - `query`：搜索关键词，可选。
 - `category`：分类名，可选。
 - `path`：明确正文路径，可选，但必须位于配置 root 和 category 下。
+- `knowledge-base-router` 传入的 read/search/browse handoff payload。
 
 输出：
 
@@ -120,11 +121,11 @@ No knowledge base documents matched "<query>".
 
 ## Skill 落地目标
 
-目标 skill：
+目标 internal worker skill：
 
 ```yaml
 name: knowledge-base-context
-description: Use when the user needs to search, browse, or load project knowledge-base context without changing files.
+description: Use only when knowledge-base-router hands off a project knowledge-base read, search, browse, or context-loading request without file changes.
 ```
 
 Writing Skills 参数：
@@ -133,16 +134,16 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-context` |
 | Skill 类型 | Technique |
-| 触发条件 | 用户要查询、浏览、加载知识库，或其他 skill 需要先注入相关知识库上下文。 |
+| 触发条件 | `knowledge-base-router` 判定为 read/search/browse/context-loading，并传入 query、category 或 path handoff。 |
 | 要解决的具体问题 | 防止 agent 不知道看什么、直接扫正文目录、加载过多文档或编造不存在的知识。 |
-| 反面案例 | 用户要写入、发布、修复、迁移或去重时，不由 context 执行。 |
-| 已知 rationalization | “索引可能不全所以直接 find”、“多读点全文更稳”、“路径在目录里就可以读”。 |
+| 反面案例 | 用户或 agent 直接提出知识库查询请求时，应先进入 router；写入、发布、修复、迁移或去重不由 context 执行。 |
+| 已知 rationalization | “只是读不用 router”、“索引可能不全所以直接 find”、“多读点全文更稳”、“路径在目录里就可以读”。 |
 | 代码示例场景 | 用户问“有没有构建配置”，context 读取配置和索引，最多加载 3 篇相关正文，其余只列标题/路径/摘要。 |
 
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-context/
+.agents/skills/knowledge-base-router/context/
 ├── SKILL.md
 └── zh-CN.md
 ```
@@ -161,6 +162,7 @@ Writing Skills 参数：
 
 依赖契约章节：
 
+- 落地 reference：`../references/contract.md`
 - [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
 - [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
 - [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)

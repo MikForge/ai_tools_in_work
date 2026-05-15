@@ -10,7 +10,7 @@
 
 ## 目标
 
-`knowledge-base-auditor` 和 `knowledge-base-gardener` 共同负责知识库熵管理。auditor 默认只读并输出固定报告；gardener 只在用户确认范围后执行维护。
+`knowledge-base-auditor` 和 `knowledge-base-gardener` 是 `knowledge-base-router` package 内部 worker，共同负责知识库熵管理。auditor 默认只读并输出固定报告；gardener 只在用户确认范围后执行维护。
 
 ---
 
@@ -31,6 +31,7 @@
 - root、layer、category 索引，如果存在。
 - 配置 root 下的正文文档候选，如果 root 存在。
 - 可选用户关注范围。
+- `knowledge-base-router` 传入的 audit/Bootstrap Gate failure handoff payload。
 
 输出：
 
@@ -58,6 +59,7 @@
 - auditor 报告。
 - 用户确认的修复范围。
 - 可选 dry-run/apply 模式。
+- router、auditor 或用户确认后的 gardener handoff payload。
 
 输出：
 
@@ -155,15 +157,15 @@ Partial 判定规则：
 
 ## Skill 落地目标
 
-本 spec 落成两个独立 skill，不能合并成一个“治理万能入口”。
+本 spec 落成两个 internal worker，不能合并成一个“治理万能入口”。外部审计或维护请求必须先进入 `knowledge-base-router`。
 
 ### `knowledge-base-auditor`
 
-目标 skill：
+目标 internal worker skill：
 
 ```yaml
 name: knowledge-base-auditor
-description: Use when the project knowledge base may be partial, broken, stale, duplicated, misclassified, or needs inspection before maintenance.
+description: Use only when knowledge-base-router hands off a project knowledge-base audit, Bootstrap Gate failure, anomaly check, or pre-maintenance inspection.
 ```
 
 Writing Skills 参数：
@@ -172,16 +174,16 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-auditor` |
 | Skill 类型 | Discipline-enforcing |
-| 触发条件 | 用户要求检查知识库，router 发现 Partial/Broken，或维护前需要确认异常、风险和修复范围。 |
+| 触发条件 | `knowledge-base-router` 发现 Partial/Broken，或判定需要审计、异常检查、维护前检查。 |
 | 要解决的具体问题 | 把结构异常、内容异常和修复建议转成固定报告，防止 agent 边检查边改文件。 |
-| 反面案例 | 用户只是读取已 Ready 的知识库正文时，不用 auditor 代替 context。 |
-| 已知 rationalization | “这个缺索引很好修我直接建”、“检查时顺手清理重复”、“报告格式不用那么固定”。 |
+| 反面案例 | 用户或 agent 直接要求检查知识库时，应先进入 router；用户只是读取已 Ready 的正文时，不用 auditor 代替 context。 |
+| 已知 rationalization | “用户说检查我可以跳过 router”、“这个缺索引很好修我直接建”、“检查时顺手清理重复”、“报告格式不用那么固定”。 |
 | 代码示例场景 | 配置存在但 category index 缺失，auditor 输出 blocking Partial 报告、Suggested Next Skill 和 Suggested Gardener Scope，不创建文件。 |
 
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-auditor/
+.agents/skills/knowledge-base-router/auditor/
 ├── SKILL.md
 └── zh-CN.md
 ```
@@ -200,6 +202,7 @@ Writing Skills 参数：
 
 依赖契约章节：
 
+- 落地 reference：`../references/contract.md`
 - [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
 - [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
 - [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)
@@ -207,11 +210,11 @@ Writing Skills 参数：
 
 ### `knowledge-base-gardener`
 
-目标 skill：
+目标 internal worker skill：
 
 ```yaml
 name: knowledge-base-gardener
-description: Use when the user has an audit report and wants confirmed maintenance repairs applied to the project knowledge base.
+description: Use only when knowledge-base-router or knowledge-base-auditor hands off a confirmed project knowledge-base maintenance repair scope.
 ```
 
 Writing Skills 参数：
@@ -220,16 +223,16 @@ Writing Skills 参数：
 | --- | --- |
 | Skill 名称 | `knowledge-base-gardener` |
 | Skill 类型 | Discipline-enforcing |
-| 触发条件 | 用户提供或确认 auditor 报告，并明确要在指定范围内执行维护修复。 |
+| 触发条件 | `knowledge-base-router` 或 `knowledge-base-auditor` 传入 auditor 报告，并且用户已确认指定维护修复范围。 |
 | 要解决的具体问题 | 在确认范围内修复知识库熵问题，同时防止 agent 擅自扩大范围、语义改写或批量破坏文档。 |
-| 反面案例 | 没有 auditor 报告、没有用户确认范围、只是想写新正文或发布草稿时，不用 gardener。 |
-| 已知 rationalization | “用户说整理一下就是允许我全库改”、“报告只列了几个文件但相关文件我也一起改”、“摘要可以顺手重写”。 |
+| 反面案例 | 用户或 agent 直接要求整理知识库时，应先进入 router；没有 auditor 报告、没有用户确认范围、只是想写新正文或发布草稿时，不用 gardener。 |
+| 已知 rationalization | “用户说整理一下我可以跳过 router/auditor”、“用户说整理一下就是允许我全库改”、“报告只列了几个文件但相关文件我也一起改”、“摘要可以顺手重写”。 |
 | 代码示例场景 | auditor 报告一个 Orphan 文档，用户确认补索引，gardener dry-run 后只修改对应分类索引并自检。 |
 
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-gardener/
+.agents/skills/knowledge-base-router/gardener/
 ├── SKILL.md
 └── zh-CN.md
 ```
@@ -248,6 +251,7 @@ Writing Skills 参数：
 
 依赖契约章节：
 
+- 落地 reference：`../references/contract.md`
 - [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
 - [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
 - [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)
