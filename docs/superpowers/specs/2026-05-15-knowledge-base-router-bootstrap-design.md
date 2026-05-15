@@ -62,6 +62,8 @@ Ready 的最低判定：
 - root index 存在。
 - categories 非空。
 - 每个 category 有 `name`、`path`、`index`、`description`。
+- 每个 category 的目录和 category index 存在。
+- 每个 category path 对应的 layer index 存在。
 
 ---
 

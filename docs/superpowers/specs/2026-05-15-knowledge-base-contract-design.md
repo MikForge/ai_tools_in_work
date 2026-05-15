@@ -107,6 +107,9 @@ knowledge_base:
 
 规则：
 
+- `layer` 由 `categories[].path` 的第一段确定，例如 `01-project-layer/03-architecture` 的 layer 是 `01-project-layer`。
+- layer index 固定使用 `{root}/{layer}/README.md`。
+- category index 使用 `{root}/{categories[].path}/{categories[].index}`。
 - `context` 通过索引发现文档，不直接扫描目录。
 - `publisher` 写入正文后必须更新分类索引。
 - `auditor` 可以扫描配置、索引和正文来发现异常，但默认只报告。

@@ -95,6 +95,10 @@ publisher 只更新：
 
 分类索引条目遵循 contract 的 `markdown-list` 格式。
 
+### `rename` 边界
+
+`rename` 只允许同一分类内的文件重命名，并同步更新该分类索引。跨分类移动、批量迁移、合并重复文档属于 `auditor -> gardener` 治理流程。
+
 ---
 
 ## 发布自检

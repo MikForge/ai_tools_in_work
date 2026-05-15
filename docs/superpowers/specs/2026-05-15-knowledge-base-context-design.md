@@ -45,7 +45,7 @@
 | 浏览模式 | 无 query/category/path | 从 root index 开始逐层展示 |
 | 搜索模式 | 有 query | 匹配 category -> 读分类索引 -> 匹配正文 |
 | 分类限定搜索 | 有 query + category | 跳过分类匹配，只读指定分类索引 |
-| 精确路径加载 | 有 path | 校验路径属于配置 root 和分类，再读取 |
+| 精确路径加载 | 有 path | 校验路径属于配置 root 和分类，且被分类索引引用，再读取 |
 
 ---
 
