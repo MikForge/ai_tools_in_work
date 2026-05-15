@@ -44,7 +44,7 @@
 | [knowledge-base-publisher-design](2026-05-15-knowledge-base-publisher-design.md) | `knowledge-base-publisher` 分类、命名、冲突处理、写入、索引、自检 | contract、author |
 | [knowledge-base-auditor-gardener-design](2026-05-15-knowledge-base-auditor-gardener-design.md) | `knowledge-base-auditor` report-only 与 `knowledge-base-gardener` 确认后维护 | contract |
 
-旧版 [knowledge-base-read-skill-design](2026-05-15-knowledge-base-read-skill-design.md) 和 [knowledge-base-update-skill-design](2026-05-15-knowledge-base-update-skill-design.md) 只作为历史参考；Harness 版本开发应以本索引和上表子 spec 为准。
+Harness 版本开发应以本索引和上表子 spec 为准。
 
 ---
 
