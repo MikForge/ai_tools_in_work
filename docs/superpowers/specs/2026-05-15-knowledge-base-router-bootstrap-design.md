@@ -36,6 +36,7 @@
 - 意图类型：init、read、author、publish、audit、maintain。
 - 下一步 skill。
 - 必要时的单个澄清问题。
+- 触发 auditor 时的 blocking/warning/info 建议等级。
 
 禁止：
 
@@ -64,6 +65,12 @@ Ready 的最低判定：
 - 每个 category 有 `name`、`path`、`index`、`description`。
 - 每个 category 的目录和 category index 存在。
 - 每个 category path 对应的 layer index 存在。
+
+Partial/Broken 的报告要求：
+
+- 缺配置、缺 root、缺根索引、缺分类索引属于 `Severity=blocking`。
+- 链接腐烂、孤儿正文、摘要缺失属于 `Severity=warning` 或 `info`，由 auditor 判定。
+- router 不自行生成报告正文，只把状态和证据交给 auditor。
 
 ---
 

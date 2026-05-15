@@ -54,11 +54,13 @@
 1. 读取 `.knowledge-base.yml`。
 2. 读取 root index。
 3. 根据 query 匹配 `categories[].name` 和 `description`。
-4. 分类唯一命中时读取 category index。
+4. 分类唯一命中时，根据 `categories[].path` 的第一段读取 layer index。
 5. 分类多命中时列出候选，让用户选择。
-6. 在 category index 中按文件名、标题、摘要匹配正文。
-7. 加载最相关的 1-3 篇全文。
-8. 其余命中只返回标题、路径和摘要。
+6. 验证 layer index 指向目标 category index。
+7. 读取 category index。
+8. 在 category index 中按文件名、标题、摘要匹配正文。
+9. 加载最相关的 1-3 篇全文。
+10. 其余命中只返回标题、路径和摘要。
 
 搜索不得跳过分类索引直接读取目录文件清单。
 
@@ -101,6 +103,7 @@ No knowledge base documents matched "<query>".
 | 分类索引缺失 | 输出 Audit Report Protocol 候选，建议 auditor |
 | 文档链接断裂 | 输出 broken link 证据，建议 auditor |
 | 多分类命中 | 一次只问一个分类选择问题 |
+| path 未被分类索引引用 | 拒绝直接读取，建议 auditor 报告 Orphan |
 
 ---
 
@@ -111,6 +114,7 @@ No knowledge base documents matched "<query>".
 3. 分类模糊时，context 不自行决定，列出候选。
 4. 分类索引链接断裂时，context 不编造内容，建议 auditor。
 5. 精确 path 不在配置 root 下时，context 拒绝读取。
+6. 精确 path 在分类目录内但未被索引引用时，context 拒绝读取并建议 auditor。
 
 ---
 

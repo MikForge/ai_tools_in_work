@@ -50,16 +50,20 @@ docs/00-project-knowledge-base/
 
 默认 categories 应来自配置模板，不由 agent 临时发明。模板至少覆盖：
 
-- project-overview
-- core-process
-- architecture
-- middleware-config
-- coding-standards
-- third-party-libraries
-- api-docs
-- prd-docs
-- technical-solutions
-- test-cases
+| name | path |
+| --- | --- |
+| project-overview | `01-project-layer/01-project-overview` |
+| core-process | `01-project-layer/02-core-process` |
+| architecture | `01-project-layer/03-architecture` |
+| middleware-config | `02-technology-layer/01-middleware-config` |
+| coding-standards | `02-technology-layer/02-coding-standards` |
+| third-party-libraries | `02-technology-layer/03-third-party-libraries` |
+| api-docs | `02-technology-layer/04-api-docs` |
+| prd-docs | `03-assets-layer/01-prd-docs` |
+| technical-solutions | `03-assets-layer/02-technical-solutions` |
+| test-cases | `03-assets-layer/03-test-cases` |
+
+每个默认 category 必须同时写入 `index: README.md` 和满足 contract 要求的 `description`，不能只写 `name` 与 `path`。
 
 ---
 
@@ -90,6 +94,18 @@ docs/00-project-knowledge-base/
 - [01-project-layer](01-project-layer/README.md)
 - [02-technology-layer](02-technology-layer/README.md)
 - [03-assets-layer](03-assets-layer/README.md)
+```
+
+层索引：
+
+```markdown
+# Project Layer
+
+## Categories
+
+- [project-overview](01-project-overview/README.md)
+- [core-process](02-core-process/README.md)
+- [architecture](03-architecture/README.md)
 ```
 
 分类索引：

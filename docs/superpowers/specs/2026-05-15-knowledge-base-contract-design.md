@@ -75,12 +75,14 @@ knowledge_base:
 
 ## 正文边界
 
-正文文档必须同时满足：
+有效正文文档必须同时满足：
 
 - 位于 `.knowledge-base.yml` 的 `root` 之下。
 - 位于某个配置分类的 `path` 之下。
 - 文件名不是该分类的 `index`。
 - 通过分类索引可发现。
+
+位于分类目录但未被分类索引引用的 Markdown 是 Orphan 候选，只能由 `auditor` 报告，再由 `gardener` 在确认后补索引或归档。
 
 以下不视为知识库正文：
 
@@ -123,6 +125,12 @@ knowledge_base:
 - [agent-skill-harness.md](agent-skill-harness.md): Agent skill harness architecture notes.
 ```
 
+索引条目规则：
+
+- 链接路径必须相对当前索引文件。
+- 冒号后的摘要应来自正文首段、author 建议摘要或用户提供摘要。
+- 摘要不得由 publisher 无依据编造；缺摘要时使用文件标题或留空摘要并报告。
+
 条目排序：
 
 - 同一分类索引内按文件名升序。
@@ -158,6 +166,9 @@ knowledge-base-router-bootstrap.md
 ## Status
 Partial | Broken | Conflict | Content Drift | Content Quality | Duplicate | Stale | Orphan | Misclassified | Warning
 
+## Severity
+blocking | warning | info
+
 ## Summary
 一句话说明为什么当前状态不能继续普通读写，或为什么该文档需要处理。
 
@@ -186,6 +197,9 @@ yes | no
 - `Evidence` 必须引用实际路径、配置字段、索引链接或正文片段位置，不能只写主观判断。
 - `Recommended Fix` 只能是建议，不代表已经修复。
 - `Suggested Gardener Scope` 是执行上限，`gardener` 不能自行扩大范围。
+- `Severity=blocking` 表示 router/publisher/context 必须停止普通读写。
+- `Severity=warning` 表示普通读取可继续，但发布或治理前需要确认。
+- `Severity=info` 表示不阻塞，仅用于维护提示。
 - 结构性问题使用 `Partial`、`Broken`、`Conflict`、`Warning`。
 - 正文内容问题使用 `Content Drift`、`Content Quality`、`Duplicate`、`Stale`、`Orphan`、`Misclassified`。
 - 涉及事实改写、合并、归档、迁移时，`Requires Confirmation` 必须为 `yes`。
@@ -211,4 +225,5 @@ yes | no
 - 没有子 spec 重新定义 `.knowledge-base.yml` 字段语义。
 - 没有子 spec 允许直接扫描正文目录作为文档发现路径。
 - Audit Report Protocol 字段完整且可被 gardener 消费。
+- Audit Report Protocol 包含 `Severity`，并能表达 blocking、warning、info。
 - 文档异常分类覆盖正文漂移、质量、重复、过期、孤儿、错分六类问题。
