@@ -1,10 +1,12 @@
-### design
+# design
 
-**用途**：系统/模块/重构的技术方案。
+> 技术方案模板。文件名：`design-<主题>-<行为>.md`
+
+**区别于** spec：design 回答"怎么做"，含架构、数据流、迁移路径。区别于 architecture：design 聚焦单模块/单系统，architecture 覆盖全局边界和部署。区别于 solution：design 含详细技术设计，solution 只给方案思路。
 
 **必填节**：
 - **上下文与范围** — 背景和边界（客观事实，非主观判断）
-- **目标与非目标** — 目标清单 + 明确不做什么
+- **目标与非目标** — 目标清单 + 明确不做什么（scope creep 防线）
 - **方案概述** — 架构、组件、数据流、关键 trade-off
 - **备选方案** — 至少 2 个，含被拒原因
 
@@ -19,3 +21,5 @@
 - ❌ 没有非目标（scope creep 的根源）
 - ❌ 方案概述只写了最终结果，没写为什么这样选
 - ❌ 备选方案只列名字，没有真正的拒绝理由
+
+**相关**：[spec](spec.md) · [architecture](architecture.md) · [solution](solution.md) · [索引](../00-doc-templates.md)
