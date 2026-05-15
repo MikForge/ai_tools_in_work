@@ -237,7 +237,7 @@ router
 
 输入：配置、索引、正文现状。
 
-输出：审计报告、风险等级、建议修复步骤。
+输出：符合 [Audit Report Protocol](#audit-report-protocol) 的审计报告、风险等级、建议修复步骤。
 
 检查内容：
 
@@ -246,6 +246,7 @@ router
 - 索引链接是否指向存在文档。
 - 正文是否未被索引引用。
 - 是否存在重复主题、过期内容、空索引、腐烂链接。
+- 是否存在正文漂移、质量异常、分类不匹配、事实冲突等文档异常。
 
 禁止：
 
@@ -343,7 +344,140 @@ router
 | Broken | YAML 格式错误、分类路径冲突 | 停止普通操作，输出修复建议 |
 | Ambiguous | 分类、操作、目标文件不清楚 | 一次只问一个问题 |
 | Conflict | 文件名冲突、索引链接冲突 | 停止并让用户选择更新、另存或取消 |
+| Document Anomaly | 正文过期、重复、错分、事实漂移 | 转 `auditor` 报告证据和建议，不直接重写 |
 | Out of Scope | 用户想写 spec、plan、README | 告知不属于知识库正文流程 |
+
+---
+
+## Audit Report Protocol
+
+`knowledge-base-auditor` 不能用自由散文描述“感觉不对”。任何 Partial、Broken、Conflict 或 Document Anomaly 都必须转成固定报告结构，让用户、`knowledge-base-gardener` 和后续自动检查器能按字段消费。
+
+```markdown
+# Knowledge Base Audit Report
+
+## Status
+Partial | Broken | Conflict | Content Drift | Content Quality | Duplicate | Stale | Orphan | Misclassified | Warning
+
+## Summary
+一句话说明为什么当前状态不能继续普通读写，或为什么该文档需要处理。
+
+## Evidence
+- Expected: 期望状态
+- Actual: 实际状态
+- Files:
+  - `<path>`
+- Config source: `.knowledge-base.yml`
+
+## Impact
+说明该异常会导致的风险，例如索引链断裂、读不到文档、覆盖风险、分类不可判定、事实误导。
+
+## Recommended Fix
+给出建议动作，但不直接执行。
+
+## Requires Confirmation
+yes | no
+
+## Suggested Gardener Scope
+列出 `knowledge-base-gardener` 被允许修改的文件和动作范围。
+```
+
+协议规则：
+
+- `Evidence` 必须引用实际路径、配置字段、索引链接或正文片段位置，不能只写主观判断。
+- `Recommended Fix` 只能是建议，不代表已经修复。
+- `Suggested Gardener Scope` 是执行上限，`gardener` 不能自行扩大范围。
+- 结构性问题使用 `Partial`、`Broken`、`Conflict`、`Warning`。
+- 正文内容问题使用 `Content Drift`、`Content Quality`、`Duplicate`、`Stale`、`Orphan`、`Misclassified`。
+- 涉及事实改写、合并、归档、迁移时，`Requires Confirmation` 必须为 `yes`。
+
+结构性异常示例：
+
+```markdown
+# Knowledge Base Audit Report
+
+## Status
+Partial
+
+## Summary
+配置文件存在，但 `architecture` 分类索引缺失，普通发布会导致索引链断裂。
+
+## Evidence
+- Expected: `docs/00-project-knowledge-base/01-project-layer/03-architecture/README.md`
+- Actual: file not found
+- Files:
+  - `.knowledge-base.yml`
+- Config source: `.knowledge-base.yml`
+
+## Impact
+`knowledge-base-context` 不能通过索引发现该分类下的正文；`publisher` 写入正文后也无法安全更新分类索引。
+
+## Recommended Fix
+创建缺失的分类索引文件，并写入最小 `## Documents` 空索引。
+
+## Requires Confirmation
+yes
+
+## Suggested Gardener Scope
+Only create:
+- `docs/00-project-knowledge-base/01-project-layer/03-architecture/README.md`
+```
+
+---
+
+## Document Anomaly Handling
+
+“文档不对劲”必须先证据化，再选择处理路径。`auditor` 负责发现和报告；`author` 负责语义修订草稿；`gardener` 负责确认范围内的机械维护或结构整理。
+
+| 类型 | 示例 | 处理路径 |
+| --- | --- | --- |
+| Content Drift | 文档声称路径、命令、skill 名称与仓库现状不一致 | `auditor` 报告证据 -> `author` 生成修订草稿 -> `publisher/gardener` 应用 |
+| Content Quality | 标题泛、缺摘要、结构混乱、来源不清 | `auditor` 报告质量问题 -> `author` 改写草稿 |
+| Duplicate | 两篇文档主题重复且结论冲突 | `auditor` 报告重复关系 -> 用户确认合并/保留/归档 |
+| Stale | 文档引用旧目录、旧命令、旧 skill | `auditor` 报告过期引用 -> `gardener` 按确认范围替换 |
+| Orphan | 正文存在但未进入分类索引 | `auditor` 报告孤儿文档 -> `gardener` 补索引或按确认归档 |
+| Misclassified | 内容属于 architecture，却放在 test-cases | `auditor` 报告分类不匹配 -> 用户确认迁移 |
+
+内容异常规则：
+
+- `auditor` 可以指出正文异常，但必须给出证据；不能只写“感觉不清楚”。
+- 事实性改写必须先进入 `knowledge-base-author` 生成修订草稿。
+- 重复、迁移、归档必须让用户确认范围。
+- 纯机械问题，如缺索引、链接腐烂、摘要格式不统一，可由 `gardener` 在确认后修复。
+- 语义问题，如内容过时、两篇文档冲突、分类不匹配，必须先报告给用户确认。
+
+内容异常示例：
+
+```markdown
+# Knowledge Base Audit Report
+
+## Status
+Content Drift
+
+## Summary
+文档引用的知识库路径与 `.knowledge-base.yml` 当前 root 不一致。
+
+## Evidence
+- Expected: 当前知识库 root 来自 `.knowledge-base.yml`
+- Actual: 文档正文硬编码了旧路径
+- Files:
+  - `docs/00-project-knowledge-base/01-project-layer/03-architecture/agent-skill-harness.md`
+  - `.knowledge-base.yml`
+- Config source: `.knowledge-base.yml`
+
+## Impact
+后续 Agent 可能按旧路径读取知识，绕过配置入口和索引结构。
+
+## Recommended Fix
+将正文中的旧路径改为配置驱动描述，避免硬编码 root。
+
+## Requires Confirmation
+yes
+
+## Suggested Gardener Scope
+Only edit the path reference in:
+- `docs/00-project-knowledge-base/01-project-layer/03-architecture/agent-skill-harness.md`
+```
 
 ---
 
@@ -414,6 +548,8 @@ auditor 扫描配置、索引、正文
 8. gardener 必须有审计报告或用户明确范围。
 9. 分类模糊、文件冲突、未配置分类都必须询问。
 10. 普通写作路径不加载治理规则。
+11. auditor 对 Partial、Broken、Conflict 和文档异常必须输出固定 Audit Report Protocol。
+12. 文档异常必须包含证据、影响、建议修复和确认范围，不能直接重写正文。
 
 ---
 
