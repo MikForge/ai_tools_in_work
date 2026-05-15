@@ -150,7 +150,7 @@ description: Drafts or revises project knowledge-base Markdown content without w
 - Handoff to Publisher
 - Common Mistakes
 
-依赖 reference：
+依赖契约章节：
 
-- `knowledge-base-contract/references/knowledge-base-config.md`
-- `knowledge-base-contract/references/document-anomalies.md`
+- [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
+- [文档异常分类](2026-05-15-knowledge-base-contract-design.md#文档异常分类)

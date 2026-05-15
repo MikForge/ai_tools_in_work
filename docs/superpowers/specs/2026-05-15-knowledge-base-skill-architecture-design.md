@@ -36,7 +36,7 @@
 
 | 子 spec | 范围 | 依赖 |
 | --- | --- | --- |
-| [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) | 共享契约：`.knowledge-base.yml`、索引层级、正文边界、命名、Audit Report Protocol | 本文 |
+| [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) | 共享契约：`.knowledge-base.yml`、索引层级、正文边界、命名、Audit Report Protocol；不是可调用 skill | 本文 |
 | [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md) | `knowledge-base-router`、Bootstrap Gate、Ready/Empty/Partial/Broken 判定、路由 | contract |
 | [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md) | `knowledge-base-init` 从零创建配置、目录、索引模板 | contract、router |
 | [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md) | `knowledge-base-context` 只读检索、浏览、上下文加载上限 | contract、router |
@@ -82,11 +82,12 @@ knowledge-base-router
 
 ---
 
-## Skill 列表
+## 可落地 Skill 列表
+
+[knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 是共享契约 spec，不生成 `.agents/skills/knowledge-base-contract/`，也不作为用户可调用 skill。所有可落地 skill 必须把它作为规范来源读取，而不是复制出各自版本的配置、索引或报告协议。
 
 | Skill | 职责 | 权限 |
 | --- | --- | --- |
-| `knowledge-base-contract` | 共享配置、索引、命名和审计报告契约 | support reference，不直接执行业务流程 |
 | `knowledge-base-router` | 环境判定、意图识别、路由 | 只读轻量状态，不写文件 |
 | `knowledge-base-init` | 从零初始化配置、目录、索引模板 | 仅 Empty 状态下写结构文件 |
 | `knowledge-base-context` | 按需读取知识库正文或摘要 | 只读，不直接扫目录 |
@@ -112,7 +113,7 @@ router
 约束规则：
 
 - `router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
-- `contract` 只能作为共享 reference 被读取，不能执行用户任务。
+- 所有 skill 必须引用共享 contract spec 的相关章节，不能自行定义另一套配置、索引、命名或报告协议。
 - `init` 只能处理 Empty 状态，不能覆盖或修复 Partial/Broken。
 - `context` 只读配置和索引，不调用 `publisher` 或 `gardener`。
 - `author` 可以使用 `context` 的结果，但不能自己全库扫描或落盘。
@@ -135,7 +136,7 @@ router
 
 ## 推荐落地顺序
 
-1. 先实现 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md)，确保所有 skill 共用同一配置、索引和报告协议。
+1. 先确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约，确保所有 skill 共用同一配置、索引和报告协议。
 2. 实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，把入口和 Bootstrap Gate 固定下来。
 3. 实现 [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md)，让 Empty 状态可进入 Ready。
 4. 实现 [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md)，提供安全只读上下文。

@@ -174,12 +174,12 @@ description: Audits project knowledge-base configuration, indexes, links, and do
 - Handoff to Gardener
 - Common Mistakes
 
-依赖 reference：
+依赖契约章节：
 
-- `knowledge-base-contract/references/knowledge-base-config.md`
-- `knowledge-base-contract/references/index-model.md`
-- `knowledge-base-contract/references/audit-report-protocol.md`
-- `knowledge-base-contract/references/document-anomalies.md`
+- [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
+- [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
+- [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)
+- [文档异常分类](2026-05-15-knowledge-base-contract-design.md#文档异常分类)
 
 ### `knowledge-base-gardener`
 
@@ -210,9 +210,9 @@ description: Applies confirmed knowledge-base maintenance repairs from audit rep
 - Self-Check
 - Common Mistakes
 
-依赖 reference：
+依赖契约章节：
 
-- `knowledge-base-contract/references/knowledge-base-config.md`
-- `knowledge-base-contract/references/index-model.md`
-- `knowledge-base-contract/references/audit-report-protocol.md`
-- `knowledge-base-contract/references/document-anomalies.md`
+- [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
+- [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
+- [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)
+- [文档异常分类](2026-05-15-knowledge-base-contract-design.md#文档异常分类)

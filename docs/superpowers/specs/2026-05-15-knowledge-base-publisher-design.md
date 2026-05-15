@@ -180,8 +180,8 @@ description: Publishes knowledge-base drafts by resolving category and filename,
 - Publish Self-Check
 - Common Mistakes
 
-依赖 reference：
+依赖契约章节：
 
-- `knowledge-base-contract/references/knowledge-base-config.md`
-- `knowledge-base-contract/references/index-model.md`
-- `knowledge-base-contract/references/audit-report-protocol.md`
+- [配置契约](2026-05-15-knowledge-base-contract-design.md#配置契约)
+- [索引模型](2026-05-15-knowledge-base-contract-design.md#索引模型)
+- [Audit Report Protocol](2026-05-15-knowledge-base-contract-design.md#audit-report-protocol)
