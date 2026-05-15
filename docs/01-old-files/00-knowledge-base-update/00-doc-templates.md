@@ -1,305 +1,326 @@
 # 文档模板
 
-每种文档类型的推荐结构和必填/可选节。模板来源标注在节名旁。
-
-`*` 表示社区暂无标准模板，以下为建议结构。
+agent 写文档时的结构参考。先查类型选择表确定类型，再按对应模板的必填节落笔，写完用校验规则自检。
 
 ---
 
-## architecture
+## 类型选择
 
-> 来源：[arc42](https://docs.arc42.org/)
-
-### 必填节
-
-- **引言与目标**（Introduction & Goals）— 驱动因素、质量目标、利益相关者
-- **上下文与范围**（Context & Scope）— 系统边界、外部接口
-- **方案策略**（Solution Strategy）— 关键架构决策和思路
-- **构建块视图**（Building Block View）— 模块/组件划分与职责
-
-### 可选节
-
-- 约束（Constraints）
-- 运行时视图（Runtime View）
-- 部署视图（Deployment View）
-- 概念（Concepts）
-- 架构决策（Architecture Decisions）— 与方案策略互补
-- 质量（Quality）
-- 风险与技术债（Risks & Technical Debt）
-- 术语表（Glossary）
+| 类型 | 用途 | 区别于 | 必填节数 |
+|------|------|--------|----------|
+| spec | 新增功能/变更的提案 | design：spec 回答"做什么"，design 回答"怎么做" | 5 |
+| design | 系统/模块的技术方案 | spec：design 含架构、数据流、迁移路径 | 4 |
+| architecture | 系统整体结构 | design：architecture 关注模块边界和部署 | 5 |
+| solution | 问题解决方案（轻量） | design：solution 不含详细技术设计 | 4 |
+| requirement | 功能/技术需求 | spec：requirement 不含方案，只描述问题 | 5 |
+| api | 接口文档 | contract：api 面向使用者，contract 面向双方 | 5 |
+| contract | 服务/模块间契约 | api：contract 含 SLA、变更策略 | 4 |
+| standard | 编码/流程规范 | guide：standard 是规则，guide 是教程 | 3 |
+| guide | 操作指南/教程 | standard：guide 是步骤，standard 是约束 | 3 |
+| test | 测试计划 | — | 3+ |
+| review | 代码/设计评审 | — | 3 |
+| changelog | 版本变更记录 | — | 2 |
+| benchmark | 性能基准 | — | 5 |
+| protocol | 网络/应用协议 | — | 4 |
+| reference | API/配置/术语参考 | — | 2 |
 
 ---
 
-## standard
+## 模板
 
-> 来源：[C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/) 等社区编码规范结构
+### spec
 
-### 必填节
+**用途**：新增功能、破坏性变更、优化改进的提案。
 
-- **引言**（Introduction）— 受众、目标、范围
-- **理念**（Philosophy）— 核心原则（不超过 5 条）
-- **规则**（Rules）— 按域分组，每条含：编号、标题、理由、示例
+**必填节**：
+- **摘要** — 一段话，不熟悉上下文的人也能懂
+- **动机** — 解决什么问题，给具体场景（不是抽象需求）
+- **方案概述** — 怎么做，记录关键 trade-off
+- **备选方案** — 至少 2 个，含被拒原因
+- **缺陷** — 这个方案有什么代价，为什么不做的理由
 
-### 可选节
+**可选节**：
+- 技术细节 — 仅在有非显而易见的边界情况或与现有功能交互时加
+- 先前经验 — 仅在确实借鉴其他项目/论文时加
+- 待解决问题 — 有意搁置的问题清单
+- 未来可能 — 本提案不做的方向性扩展
 
-- 自动化检查（Enforcement）
-- 例外情况（Exceptions）
-- 参考文献（References）
-- 术语表（Glossary）
+**常见错误**：
+- ❌ 动机写"我们需要 X 功能"（循环论证）
+- ✅ 动机写"用户在 Y 场景下无法完成 Z，因为..."
+- ❌ 只有 1 个方案或没有备选
 
----
+### design
 
-## spec
+**用途**：系统/模块/重构的技术方案。
 
-> 来源：[Rust RFC](https://github.com/rust-lang/rfcs) 模板
+**必填节**：
+- **上下文与范围** — 背景和边界（客观事实，非主观判断）
+- **目标与非目标** — 目标清单 + 明确不做什么
+- **方案概述** — 架构、组件、数据流、关键 trade-off
+- **备选方案** — 至少 2 个，含被拒原因
 
-### 必填节
+**可选节**：
+- 迁移路径 — 分步计划，每步可独立验证（仅重构/迁移时加）
+- 风险评估 — 回滚可行性、兼容期策略（仅破坏性变更时加）
+- 接口设计 — 对外 API/契约（仅涉及新接口时加）
+- 数据存储 — schema 变更、迁移策略（仅涉及持久化时加）
+- 横切关注点 — 安全、隐私、可观测性（仅在非平凡时加）
 
-- **摘要**（Summary）— 一段话说明是什么
-- **动机**（Motivation）— 解决什么问题，给具体场景
-- **技术说明**（Reference-level explanation）— 技术细节、边界情况、与现有功能的交互
-- **缺陷**（Drawbacks）— 为什么不做的理由
+**常见错误**：
+- ❌ 没有非目标（scope creep 的根源）
+- ❌ 方案概述只写了最终结果，没写为什么这样选
+- ❌ 备选方案只列名字，没有真正的拒绝理由
 
-### 可选节
+### architecture
 
-- 用户指南级说明（Guide-level explanation）
-- 理由与备选方案（Rationale and alternatives）
-- 先前经验（Prior art）— 其他项目/论文参考
-- 待解决问题（Unresolved questions）
-- 未来可能（Future possibilities）
+**用途**：系统整体结构、模块划分、部署拓扑。
 
----
+**必填节**：
+- **引言与目标** — 驱动因素、质量目标、利益相关者
+- **上下文与范围** — 系统边界、外部接口
+- **方案策略** — 关键架构决策和思路
+- **构建块视图** — 模块/组件划分与职责
+- **部署视图** — 部署拓扑与基础设施
 
-## design
+**可选节**：
+- 约束 — 技术/组织/法规硬性限制
+- 运行时视图 — 关键场景的时序/交互
+- 架构决策记录 — 与方案策略互补的重大决策
+- 风险与技术债 — 已知风险和有意承担的技术债
 
-> 来源：[Google Design Doc](https://www.industrialempathy.com/posts/design-docs-at-google/) 实践
+**常见错误**：
+- ❌ 只有模块图没有部署图（运行时行为不可见）
+- ❌ 构建块视图变成目录树（没有职责描述）
 
-### 必填节
+### solution
 
-- **上下文与范围**（Context & scope）— 背景和范围（客观事实）
-- **目标与非目标**（Goals & non-goals）— 目标清单 + 明确定义不做什么
-- **方案概述**（Design overview）— 记录关键 trade-off
-- **备选方案**（Alternatives considered）— 备选方案及被拒原因
+**用途**：问题解决方案（轻量，不含完整技术设计）。
 
-### 可选节
+**必填节**：
+- **问题** — 当前状况与痛点
+- **方案** — 方案描述
+- **理由** — 为什么是这个方案
+- **影响评估** — 影响范围、利弊
 
-- 系统上下文图（System-context-diagram）
-- 接口设计（APIs）— 只画相关部分
-- 数据存储（Data storage）
-- 代码/伪代码（Code / pseudo-code）— 仅在算法新颖时出现
-- 横切关注点（Cross-cutting concerns）— 安全、隐私、可观测性
+**可选节**：
+- 备选方案 — 何时加：存在至少 1 个合理替代方案
+- 迁移步骤 — 何时加：需要分步执行
+- 回滚方案 — 何时加：方案有不可逆操作
 
----
+**常见错误**：
+- ❌ 和 design 不分 — solution 不含详细架构和数据流
 
-## api
+### requirement
 
-> 来源：[I'd Rather Be Writing API 文档课程](https://idratherbewriting.com/learnapidoc/)
+**用途**：功能需求或技术需求（Enabler）。
 
-### 必填节
+**必填节**：
+- **背景** — 业务/技术上下文
+- **问题陈述** — 要解决什么问题
+- **目标与非目标** — 含明确排除项
+- **功能需求** — 按优先级排
+- **验收标准** — 可验证的条件
 
-- **资源描述**（Resource description）— 资源是什么、做什么
-- **端点与方法**（Endpoints & methods）— URL + HTTP 方法
-- **参数**（Parameters）— 参数名、类型、必填/可选、说明
-- **请求示例**（Request example）— 可复制的请求示例
-- **响应示例与结构**（Response example & schema）— 响应示例 + 字段释义
+**可选节**：
+- 用户故事/用例 — 何时加：需求涉及用户可见行为
+- 非功能需求 — 何时加：涉及性能、安全、合规
+- 依赖项 — 何时加：依赖外部系统或上游模块
 
-### 可选节
+**常见错误**：
+- ❌ 验收标准写成"系统正常运行"（不可验证）
+- ✅ 验收标准写成"X 条件下 Y 操作在 200ms 内完成"
 
-- 认证与授权（Authentication / authorization）
-- 状态码与错误码（Status & error codes）
-- 速率限制（Rate limiting）
-- 速查表（Quick reference）
-- 术语表（Glossary）
+### api
 
----
+**用途**：REST/GraphQL/RPC 接口文档。
 
-## changelog
+**必填节**：
+- **资源描述** — 资源是什么、做什么
+- **端点与方法** — URL + HTTP 方法（或 Schema/服务定义）
+- **参数** — 参数名、类型、必填/可选、说明
+- **请求示例** — 可复制的请求
+- **响应示例与结构** — 响应示例 + 字段释义
 
-> 来源：[Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+**可选节**：
+- 认证与授权 — 何时加：接口需要鉴权
+- 状态码与错误码 — 何时加：有非标准错误码
+- 速率限制 — 何时加：有频率限制
 
-### 必填节
+**常见错误**：
+- ❌ 请求示例是伪代码（无法直接复制使用）
+- ✅ 请求示例是完整 curl 或可执行代码
 
+### contract
+
+**用途**：服务间或模块间的接口契约。
+
+**必填节**：
+- **参与方** — 调用方与服务方
+- **接口定义** — 函数签名/端点、参数、返回
+- **数据结构** — 请求/响应结构定义
+- **错误处理** — 错误码与含义
+
+**可选节**：
+- SLA — 何时加：有延迟/可用性承诺
+- 版本管理 — 何时加：接口有多个版本共存
+- 废弃策略 — 何时加：有计划废弃的接口
+
+**常见错误**：
+- ❌ 没有错误处理节（调用方不知道如何处理异常）
+- ❌ 数据结构只给例子不给 schema
+
+### standard
+
+**用途**：编码规范、流程规范、命名规则。
+
+**必填节**：
+- **引言** — 受众、目标、范围
+- **理念** — 核心原则（不超过 5 条）
+- **规则** — 按域分组，每条含编号、标题、理由、示例
+
+**可选节**：
+- 自动化检查 — 何时加：有 lint/CI 可执行
+- 例外情况 — 何时加：存在已知合理例外
+
+**常见错误**：
+- ❌ 规则没有示例（无法判断对错）
+- ❌ 理念超过 5 条（失去聚焦）
+
+### guide
+
+**用途**：操作指南、快速入门、排障指南。
+
+**必填节**：
+- **前置条件** — 环境、权限、知识
+- **操作步骤** — 逐步操作，每步有预期结果
+- **预期结果** — 完成后的可验证状态
+
+**可选节**：
+- 排障 — 何时加：操作可能遇到常见错误
+- 下一步/相关指南 — 何时加：有自然的后续阅读路径
+
+**常见错误**：
+- ❌ 步骤写成"配置 X"但没有说怎么配置
+- ✅ 步骤写成"打开 Y 文件，添加 Z 行，预期看到 W"
+
+### test
+
+**用途**：测试计划（单元/集成/验收/E2E/性能）。
+
+**必填节**：
+- **被测对象** — 函数/模块/系统
+- **测试策略** — 覆盖范围、mock/stub 策略
+- **用例列表** — 正常路径 + 边界 + 异常路径
+
+**可选节**：
+- 验收标准 — 何时加：E2E/验收测试
+- 负载模型 — 何时加：性能测试
+- 排除功能 — 何时加：明确不测的功能
+- 环境/工具 — 何时加：需要特殊环境或工具
+
+**常见错误**：
+- ❌ 只有正常路径用例（边界和异常最容易出 bug）
+- ❌ 测试策略写"全面覆盖"（没有信息量）
+
+### review
+
+**用途**：代码评审、设计评审记录。
+
+**必填节**：
+- **上下文** — 评审范围、涉及的文件/设计
+- **总体评价** — 一句话结论
+- **发现** — 问题清单，按严重度分级
+
+**可选节**：
+- 建议 — 何时加：有改进建议而非问题
+- 后续项 — 何时加：有需要跟踪但不阻断的项
+
+**常见错误**：
+- ❌ 发现清单不标严重度（无法判断哪些必须修）
+- ❌ 总体评价和发现矛盾
+
+### changelog
+
+**用途**：版本变更记录。
+
+**必填节**：
 - **版本头** — `## [version] - YYYY-MM-DD`
-- **变更分类** — 每版本按需出现：
-  - `Added`（新增）— 新功能
-  - `Changed`（变更）— 已有功能修改
-  - `Deprecated`（废弃）— 即将移除
-  - `Removed`（移除）— 已移除
-  - `Fixed`（修复）— 缺陷修复
-  - `Security`（安全）— 安全漏洞
+- **变更分类** — Added / Changed / Deprecated / Removed / Fixed / Security 按需出现
 
-### 可选节
+**可选节**：
+- Unreleased — 未发布变更汇总
+- YANKED — 已撤回版本标记
 
-- `[Unreleased]` 未发布变更汇总
-- `[YANKED]` 已撤回版本标记
-- 语义化版本申明（SemVer）
+**常见错误**：
+- ❌ 一个变更跨多个分类（选最主要的那个）
 
----
+### benchmark
 
-## test
+**用途**：性能基准测试结果。
 
-> 来源：[SoftwareTestingHelp](https://www.softwaretestinghelp.com/test-plan-sample/) 测试计划模板
+**必填节**：
+- **目的** — 基准测试目的和场景
+- **方法论** — 测试方法、工具、参数
+- **环境** — 硬件/软件/网络
+- **结果** — 数据（表格/图表）
+- **分析** — 结论与解读
 
-### 必填节
+**可选节**：
+- 原始数据 — 何时加：需要他人复现
+- 基线对比 — 何时加：有历史数据比较
 
-- **引言**（Introduction）— 被测对象概要
-- **目标**（Objectives）— 测试目标
-- **范围**（Scope）— 测什么 + 怎么测
-- **测试策略**（Testing strategy）— 单元/集成/性能/验收等分层策略
-- **被测功能**（Features to be tested）— 功能清单
-- **排除功能**（Features NOT to be tested）— 明确排除的功能及原因
+**常见错误**：
+- ❌ 只有结果没有方法论（无法复现）
+- ❌ 环境信息缺失（不同环境结果可能相反）
 
-### 可选节
+### protocol
 
-- 软硬件环境要求（Hardware / environment requirements）
-- 测试排期（Test schedule）
-- 管控流程（Control procedures）— 缺陷上报与变更
-- 人员与职责（Resources / roles & responsibilities）
-- 依赖项（Dependencies）
-- 风险与假设（Risks / assumptions）
-- 工具（Tools）
-- 审批（Approvals）
+**用途**：网络协议或应用层协议/工作流。
 
----
+**必填节**：
+- **概述** — 协议用途和定位
+- **消息格式** — 结构定义、字段说明
+- **状态机/交互流程** — 交互序列、状态变迁
+- **错误处理** — 异常情况的协议行为
 
-## review
+**可选节**：
+- 版本协商 — 何时加：多版本共存
+- 安全考量 — 何时加：涉及认证/加密
+- 示例 — 何时加：消息格式复杂
 
-> 来源：[Google 代码评审指南](https://google.github.io/eng-practices/review/)
+**常见错误**：
+- ❌ 没有错误处理（协议实现必然遇到异常）
 
-### 必填节
+### reference
 
-- **上下文**（Context）— 评审范围、涉及的代码/设计
-- **总体评价**（Summary）
-- **发现**（Findings）— 问题清单，按严重度分级
+**用途**：API 参考、配置参考、术语表。
 
-### 可选节
+**必填节**：
+- **概述** — 覆盖范围和约定
+- **条目** — 按逻辑分组，每条含名称、描述、参数/类型/默认值（适用时）、示例
 
-- **建议**（Recommendations）— 改进意见
-- **后续项**（Follow-up items）
-- **审批**（Approval）— 结论及签署
+**可选节**：
+- 版本历史 — 何时加：条目随版本变化
+- 废弃标记 — 何时加：有计划移除的条目
 
----
-
-## contract `*`
-
-### 必填节
-
-- **参与方**（Parties）— 调用方与服务方
-- **接口定义**（Interface definition）— 端点、方法、参数、返回
-- **数据结构**（Schema）— 请求/响应结构
-- **错误处理**（Error handling）— 错误码与含义
-
-### 可选节
-
-- 服务等级承诺（SLAs）
-- 速率限制（Rate limiting）
-- 版本管理（Versioning）
-- 废弃策略（Deprecation policy）
+**常见错误**：
+- ❌ 条目没有示例（参考文档的核心价值是可抄）
+- ❌ 概述写"本文档是 X 的参考"（循环定义）
 
 ---
 
-## requirement `*`
+## 校验规则
 
-### 必填节
+写完文档后逐条自查：
 
-- **背景**（Background）— 背景上下文
-- **问题陈述**（Problem statement）— 要解决什么问题
-- **目标与非目标**（Goals & non-goals）
-- **功能需求**（Functional requirements）— 按优先级排
-- **验收标准**（Acceptance criteria）
-
-### 可选节
-
-- 用户故事/用例（User stories / use cases）
-- 非功能需求（Non-functional requirements）— 性能、安全、合规
-- 依赖项（Dependencies）
-- 术语表（Glossary）
-
----
-
-## protocol `*`
-
-### 必填节
-
-- **概述**（Overview）— 协议用途和定位
-- **消息格式**（Message format）— 结构定义、字段说明
-- **状态机/交互流程**（State machine / flows）— 交互序列、状态变迁
-- **错误处理**（Error handling）— 异常情况的协议行为
-
-### 可选节
-
-- 版本协商（Version negotiation）
-- 安全考量（Security considerations）
-- 示例（Examples）
-- 参考实现（Reference implementation）
-
----
-
-## solution `*`
-
-### 必填节
-
-- **问题**（Problem）— 当前状况与痛点
-- **方案**（Proposed solution）— 方案描述
-- **理由**（Rationale）— 为什么是这个方案
-- **影响评估**（Impact assessment）— 影响范围、利弊
-
-### 可选节
-
-- 备选方案（Alternatives considered）
-- 成本/资源估算（Cost / resource estimate）
-- 时间线/里程碑（Timeline / milestones）
-- 风险与缓解（Risks & mitigations）
-
----
-
-## guide `*`
-
-### 必填节
-
-- **前置条件**（Prerequisites）— 环境、权限、知识
-- **操作步骤**（Steps）— 逐步操作，每步有预期结果
-- **预期结果**（Expected outcome）— 完成后的可验证状态
-
-### 可选节
-
-- 排障（Troubleshooting）
-- 下一步/相关指南（Next steps / related guides）
-- 截图/图示（Screenshots / diagrams）
-
----
-
-## reference `*`
-
-### 必填节
-
-- **概述**（Overview）— 覆盖范围和约定
-- **条目**（Entries）— 按逻辑分组，每条含：
-  - 名称/签名
-  - 描述
-  - 参数（如有）
-  - 示例
-
-### 可选节
-
-- 参见（See also）— 交叉引用
-- 版本历史（Version history）
-
----
-
-## benchmark `*`
-
-### 必填节
-
-- **目的**（Purpose）— 基准测试目的和场景
-- **方法论**（Methodology）— 测试方法、工具、参数
-- **环境**（Environment）— 硬件/软件/网络环境
-- **结果**（Results）— 数据（表格/图表）
-- **分析**（Analysis）— 结论与解读
-
-### 可选节
-
-- 原始数据（Raw data）
-- 基线对比（Comparison to baseline）
-- 建议（Recommendations）
-- 可复现性（Reproducibility）
+| # | 规则 | 适用类型 |
+|---|------|----------|
+| 1 | 摘要/概述不超过 3 句话，不熟悉上下文的人能看懂 | spec, design, architecture, solution |
+| 2 | 备选方案至少 2 个且含被拒原因 | spec, design |
+| 3 | 目标必须配对非目标（scope creep 防线） | design, requirement |
+| 4 | 验收标准必须可验证（有数字/布尔值/可见行为） | requirement, test |
+| 5 | 所有示例必须可直接复制使用 | api, reference, guide |
+| 6 | 错误处理/异常路径必须覆盖 | contract, protocol, api |
+| 7 | 动机/问题陈述必须给具体场景（非抽象需求） | spec, solution |
+| 8 | 文件名符合 `类型-主题-行为.md`（见命名规范） | 所有 |
