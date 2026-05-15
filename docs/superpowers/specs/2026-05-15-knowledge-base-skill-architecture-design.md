@@ -172,8 +172,8 @@ router
 
 ## 推荐落地顺序
 
-1. 先确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约，落成 `references/contract.md`。
-2. 实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，把唯一公共入口和 Bootstrap Gate 固定下来。
+1. 先实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，建立 `knowledge-base-router` package 骨架、唯一公共入口、Bootstrap Gate 和 `references/` 位置。
+2. 确认并冻结 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 作为共享契约，落成 `references/contract.md`。
 3. 实现 [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md)，让 Empty 状态可进入 Ready。
 4. 实现 [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md)，提供安全只读上下文。
 5. 实现 [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md)，提供正文草稿生成。
