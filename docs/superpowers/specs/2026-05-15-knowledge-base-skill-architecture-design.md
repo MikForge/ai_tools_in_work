@@ -1,8 +1,26 @@
-# 知识库 Skill Harness 架构设计
+# 知识库 Skill Harness 架构索引
 
 **日期**：2026-05-15
-**状态**：design
+**状态**：design-index
 **知识索引**：[Harness Engineering](../../knowledgebase/harness-engineering.md)
+
+---
+
+## 定位
+
+这份文档是 Knowledge Base Skill Harness 的父级架构索引，不作为直接开发输入。实际开发必须进入对应子 spec，每个子 spec 以本文作为索引和全局约束来源。
+
+父 spec 负责回答：
+
+- 为什么知识库 skill 要采用 Harness 化架构。
+- 全局分层、调用边界和不可违反的不变量是什么。
+- 每个细化 spec 负责哪一块。
+- 后续实现应该按什么顺序拆解。
+
+子 spec 负责回答：
+
+- 单个 skill 或共享契约的输入输出、流程、错误处理和验收场景。
+- 该部分如何落成 `SKILL.md`、`zh-CN.md`、模板或测试提示。
 
 ---
 
@@ -10,47 +28,23 @@
 
 项目知识库 skill 不能只是一组“会读写 Markdown 的工具”。Agent 的典型失败包括：一步到位做太多、跳过索引直接扫目录、写完正文忘记更新 README、看到局部成功就宣布完成、治理任务未经确认就批量改库。按照 Harness Engineering 的思路，这些失败不应该靠更强模型解决，而应该靠运行环境里的约束、反馈回路、上下文工程和熵管理解决。
 
-因此，本设计把知识库能力重构为一套 **Knowledge Base Skill Harness**：人类掌舵，Agent 执行；router 控制入口，context 按需读取，author 只产草稿，publisher 才能落盘，auditor 默认报告，gardener 在确认后维护。
+因此，本体系把知识库能力重构为 **Knowledge Base Skill Harness**：人类掌舵，Agent 执行；router 控制入口，context 按需读取，author 只产草稿，publisher 才能落盘，auditor 默认报告，gardener 在确认后维护。
 
 ---
 
-## 目标
+## 子 Spec 索引
 
-1. 让 Agent 能按需读取、按边界调用、低误用地完成知识库任务。
-2. 把初始化、读取、写作、发布、审计、治理拆成可验证的独立 skill。
-3. 用 Bootstrap Gate 防止无配置、半初始化、损坏配置下的错误写入。
-4. 用发布自检和治理报告阻断“过早宣布完成”和“默默批量改库”。
-5. 让普通写作路径保持轻量，不加载全库治理规则。
-6. 为后续创建真实 `SKILL.md` 提供清晰职责、输入输出、禁止行为和验收场景。
+| 子 spec | 范围 | 依赖 |
+| --- | --- | --- |
+| [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) | 共享契约：`.knowledge-base.yml`、索引层级、正文边界、命名、Audit Report Protocol | 本文 |
+| [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md) | `knowledge-base-router`、Bootstrap Gate、Ready/Empty/Partial/Broken 判定、路由 | contract |
+| [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md) | `knowledge-base-init` 从零创建配置、目录、索引模板 | contract、router |
+| [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md) | `knowledge-base-context` 只读检索、浏览、上下文加载上限 | contract、router |
+| [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md) | `knowledge-base-author` 正文草稿、事实保真、修订草稿 | contract、context |
+| [knowledge-base-publisher-design](2026-05-15-knowledge-base-publisher-design.md) | `knowledge-base-publisher` 分类、命名、冲突处理、写入、索引、自检 | contract、author |
+| [knowledge-base-auditor-gardener-design](2026-05-15-knowledge-base-auditor-gardener-design.md) | `knowledge-base-auditor` report-only 与 `knowledge-base-gardener` 确认后维护 | contract |
 
----
-
-## 范围
-
-### 覆盖对象
-
-- 当前仓库 `.knowledge-base.yml` 指向的知识库正文 Markdown。
-- 默认初始化模板目标：`docs/00-project-knowledge-base/`。
-- 根索引、层索引、分类索引，用作知识库导航和发现入口。
-
-### 不覆盖对象
-
-- `docs/superpowers/specs/**` 设计文档。
-- `docs/superpowers/plans/**` 实现计划。
-- 仓库根 README、skill 仓库索引、普通任意 Markdown。
-- 分类 README 本身不视为正文文档，只视为索引。
-- CI、linter、后台自动任务的具体实现。它们作为未来扩展预留。
-
----
-
-## 核心原则
-
-1. **配置是唯一入口**：知识库根目录、分类、索引位置由 `.knowledge-base.yml` 决定。
-2. **索引优先发现**：读取正文必须经由配置和 README 索引，不直接 `find` 或 `ls` 扫正文目录。
-3. **写作与落盘分离**：`author` 只生成草稿；`publisher` 才能写文件和更新索引。
-4. **治理默认报告**：`auditor` 默认只读；`gardener` 必须基于报告或明确范围执行。
-5. **不确定就停下**：操作类型、分类、目标文件、覆盖意图不清楚时，只问一个问题。
-6. **失败回写规则**：每个被发现的 Agent 失败模式，都应该转化为 skill 禁止行为、Common Mistakes 或验收场景。
+旧版 [knowledge-base-read-skill-design](2026-05-15-knowledge-base-read-skill-design.md) 和 [knowledge-base-update-skill-design](2026-05-15-knowledge-base-update-skill-design.md) 只作为历史参考；Harness 版本开发应以本索引和上表子 spec 为准。
 
 ---
 
@@ -75,27 +69,16 @@ knowledge-base-router
 
 ---
 
-## Bootstrap Gate
+## 全局不变量
 
-router 在任何读写治理动作前，必须先判断知识库环境状态。
-
-| 状态 | 判定 | 行为 |
-| --- | --- | --- |
-| Ready | `.knowledge-base.yml` 存在，root、index、categories 均可解析，关键索引可达 | 进入正常路由 |
-| Empty | `.knowledge-base.yml` 不存在，默认 root 也不存在 | 明确初始化请求进入 `knowledge-base-init`；普通读写先询问是否初始化 |
-| Partial | 只有配置或只有目录，或部分索引缺失 | 不运行 init 覆盖，转 `knowledge-base-auditor` 产出诊断报告 |
-| Broken | 配置格式错误、分类路径冲突、索引不可达 | 停止普通操作，输出错误并转审计/修复建议 |
-
-### `knowledge-base-init` 规则
-
-`knowledge-base-init` 只负责从零创建知识库 harness：
-
-- 创建 `.knowledge-base.yml`。
-- 创建 root、layer、category 目录。
-- 创建根索引、层索引、分类索引空模板。
-- 已存在任何关键结构时默认拒绝覆盖。
-
-它不写正文、不迁移旧文档、不合并现有目录、不修复 Partial/Broken 状态。修复类工作必须进入 `auditor -> gardener`。
+1. **配置是唯一入口**：知识库根目录、分类、索引位置由 `.knowledge-base.yml` 决定。
+2. **索引优先发现**：读取正文必须经由配置和 README 索引，不直接 `find` 或 `ls` 扫正文目录。
+3. **写作与落盘分离**：`author` 只生成草稿；`publisher` 才能写文件和更新索引。
+4. **治理默认报告**：`auditor` 默认只读；`gardener` 必须基于报告或明确范围执行。
+5. **Bootstrap Gate 先行**：router 在任何读写治理动作前，先判断 Ready、Empty、Partial、Broken。
+6. **不确定就停下**：操作类型、分类、目标文件、覆盖意图不清楚时，一次只问一个问题。
+7. **报告协议固定**：Partial、Broken、Conflict 和文档异常必须输出 contract 中定义的 Audit Report Protocol。
+8. **失败回写规则**：每个被发现的 Agent 失败模式，都应该转化为 skill 禁止行为、Common Mistakes 或验收场景。
 
 ---
 
@@ -128,6 +111,7 @@ router
 约束规则：
 
 - `router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
+- `init` 只能处理 Empty 状态，不能覆盖或修复 Partial/Broken。
 - `context` 只读配置和索引，不调用 `publisher` 或 `gardener`。
 - `author` 可以使用 `context` 的结果，但不能自己全库扫描或落盘。
 - `publisher` 可读取目标文件和相关索引，但不能做全库治理。
@@ -147,425 +131,25 @@ router
 
 ---
 
-## 详细职责
+## 推荐落地顺序
 
-### `knowledge-base-router`
-
-输入：用户意图、当前仓库状态。
-
-输出：环境状态、路由决策、下一步 skill。
-
-禁止：
-
-- 不生成正文。
-- 不写文件。
-- 不直接修复知识库。
-- 不绕过 Bootstrap Gate。
-
-### `knowledge-base-init`
-
-输入：明确初始化请求、默认模板。
-
-输出：`.knowledge-base.yml`、目录结构、空索引。
-
-禁止：
-
-- 不覆盖已有配置或目录。
-- 不写正文文档。
-- 不处理迁移、合并、修复。
-- 不在 Partial/Broken 状态下强行初始化。
-
-### `knowledge-base-context`
-
-输入：query、category、path 等读取意图。
-
-输出：匹配文档全文、摘要、索引导航结果。
-
-规则：
-
-- 读取 `.knowledge-base.yml`。
-- 通过根索引、层索引、分类索引定位文档。
-- 搜索模式最多加载 3 篇全文，其余返回标题和摘要。
-
-禁止：
-
-- 不直接 `find` 或 `ls` 扫正文目录发现文档。
-- 不写文件。
-- 不编造不存在的文档。
-- 不把全库正文一次性塞进上下文。
-
-### `knowledge-base-author`
-
-输入：用户材料、代码分析、会话内容、`context` 读取结果。
-
-输出：Markdown 正文草稿。
-
-规则：
-
-- 保留事实，不虚构来源。
-- 只做必要结构化、标题化、摘要化。
-- 更新已有正文时应基于已读取内容做最小改写。
-
-禁止：
-
-- 不落盘。
-- 不更新索引。
-- 不决定最终分类和文件名。
-- 不把治理建议混进正文发布。
-
-### `knowledge-base-publisher`
-
-输入：正文草稿、目标分类、文件名、操作类型。
-
-输出：正文文件、分类索引更新，必要时更新层索引或根索引。
-
-规则：
-
-- 分类必须来自 `.knowledge-base.yml`。
-- 文件名遵循配置中的命名风格。
-- 冲突时确认是覆盖、更新还是另存。
-- 写入后必须执行发布自检。
-
-禁止：
-
-- 不新增未配置分类。
-- 不大幅改写正文内容。
-- 不跳过索引更新。
-- 不在自检失败时宣布完成。
-
-### `knowledge-base-auditor`
-
-输入：配置、索引、正文现状。
-
-输出：符合 [Audit Report Protocol](#audit-report-protocol) 的审计报告、风险等级、建议修复步骤。
-
-检查内容：
-
-- 配置是否可解析。
-- root、layer、category、index 是否存在。
-- 索引链接是否指向存在文档。
-- 正文是否未被索引引用。
-- 是否存在重复主题、过期内容、空索引、腐烂链接。
-- 是否存在正文漂移、质量异常、分类不匹配、事实冲突等文档异常。
-
-禁止：
-
-- 默认不改文件。
-- 不做批量重组。
-- 不把建议伪装成已完成修复。
-
-### `knowledge-base-gardener`
-
-输入：`auditor` 报告、用户确认的修复范围。
-
-输出：去重、迁移、索引修复、腐烂修复后的文件改动。
-
-规则：
-
-- 每次只执行确认范围内的维护。
-- 大规模移动或合并前列出影响文件。
-- 执行后重新做最小自检。
-
-禁止：
-
-- 不绕过审计报告或明确范围。
-- 不做未确认的大规模结构改动。
-- 不删除正文而不保留迁移说明或用户确认。
+1. 先实现 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md)，确保所有 skill 共用同一配置、索引和报告协议。
+2. 实现 [knowledge-base-router-bootstrap-design](2026-05-15-knowledge-base-router-bootstrap-design.md)，把入口和 Bootstrap Gate 固定下来。
+3. 实现 [knowledge-base-init-design](2026-05-15-knowledge-base-init-design.md)，让 Empty 状态可进入 Ready。
+4. 实现 [knowledge-base-context-design](2026-05-15-knowledge-base-context-design.md)，提供安全只读上下文。
+5. 实现 [knowledge-base-author-design](2026-05-15-knowledge-base-author-design.md)，提供正文草稿生成。
+6. 实现 [knowledge-base-publisher-design](2026-05-15-knowledge-base-publisher-design.md)，完成写入、索引和自检。
+7. 实现 [knowledge-base-auditor-gardener-design](2026-05-15-knowledge-base-auditor-gardener-design.md)，补上治理和熵管理。
 
 ---
 
-## 典型流程
-
-### 初始化
-
-```text
-用户请求初始化
-  -> knowledge-base-router
-  -> Bootstrap Gate = Empty
-  -> knowledge-base-init
-  -> 汇报创建的配置、目录、索引
-```
-
-如果状态是 Partial 或 Broken，不进入 init，改走 `knowledge-base-auditor`。
-
-### 查询知识
-
-```text
-用户查询 / 其他 skill 请求上下文
-  -> knowledge-base-router
-  -> Bootstrap Gate = Ready
-  -> knowledge-base-context
-  -> 返回匹配文档或摘要
-```
-
-### 新建正文
-
-```text
-用户要求沉淀知识
-  -> knowledge-base-router
-  -> Bootstrap Gate = Ready
-  -> knowledge-base-context(optional)
-  -> knowledge-base-author
-  -> 用户确认草稿或直接交给 publisher
-  -> knowledge-base-publisher
-  -> 发布自检
-```
-
-### 更新正文
-
-```text
-用户要求更新已有知识
-  -> knowledge-base-router
-  -> knowledge-base-context 读取现有正文
-  -> knowledge-base-author 生成最小修订草稿
-  -> knowledge-base-publisher 更新正文和索引
-  -> 发布自检
-```
-
-### 审计与治理
-
-```text
-用户要求检查知识库
-  -> knowledge-base-router
-  -> knowledge-base-auditor report-only
-  -> 用户确认修复范围
-  -> knowledge-base-gardener apply
-  -> 最小自检
-```
-
----
-
-## 错误处理
-
-| 错误类型 | 示例 | 行为 |
-| --- | --- | --- |
-| Empty | 用户要求读取知识库但没有配置和目录 | 询问是否初始化，不自行创建 |
-| Partial | 有 `.knowledge-base.yml` 但索引缺失 | 转 `auditor` 报告，不用 init 覆盖 |
-| Broken | YAML 格式错误、分类路径冲突 | 停止普通操作，输出修复建议 |
-| Ambiguous | 分类、操作、目标文件不清楚 | 一次只问一个问题 |
-| Conflict | 文件名冲突、索引链接冲突 | 停止并让用户选择更新、另存或取消 |
-| Document Anomaly | 正文过期、重复、错分、事实漂移 | 转 `auditor` 报告证据和建议，不直接重写 |
-| Out of Scope | 用户想写 spec、plan、README | 告知不属于知识库正文流程 |
-
----
-
-## Audit Report Protocol
-
-`knowledge-base-auditor` 不能用自由散文描述“感觉不对”。任何 Partial、Broken、Conflict 或 Document Anomaly 都必须转成固定报告结构，让用户、`knowledge-base-gardener` 和后续自动检查器能按字段消费。
-
-```markdown
-# Knowledge Base Audit Report
-
-## Status
-Partial | Broken | Conflict | Content Drift | Content Quality | Duplicate | Stale | Orphan | Misclassified | Warning
-
-## Summary
-一句话说明为什么当前状态不能继续普通读写，或为什么该文档需要处理。
-
-## Evidence
-- Expected: 期望状态
-- Actual: 实际状态
-- Files:
-  - `<path>`
-- Config source: `.knowledge-base.yml`
-
-## Impact
-说明该异常会导致的风险，例如索引链断裂、读不到文档、覆盖风险、分类不可判定、事实误导。
-
-## Recommended Fix
-给出建议动作，但不直接执行。
-
-## Requires Confirmation
-yes | no
-
-## Suggested Gardener Scope
-列出 `knowledge-base-gardener` 被允许修改的文件和动作范围。
-```
-
-协议规则：
-
-- `Evidence` 必须引用实际路径、配置字段、索引链接或正文片段位置，不能只写主观判断。
-- `Recommended Fix` 只能是建议，不代表已经修复。
-- `Suggested Gardener Scope` 是执行上限，`gardener` 不能自行扩大范围。
-- 结构性问题使用 `Partial`、`Broken`、`Conflict`、`Warning`。
-- 正文内容问题使用 `Content Drift`、`Content Quality`、`Duplicate`、`Stale`、`Orphan`、`Misclassified`。
-- 涉及事实改写、合并、归档、迁移时，`Requires Confirmation` 必须为 `yes`。
-
-结构性异常示例：
-
-```markdown
-# Knowledge Base Audit Report
-
-## Status
-Partial
-
-## Summary
-配置文件存在，但 `architecture` 分类索引缺失，普通发布会导致索引链断裂。
-
-## Evidence
-- Expected: `docs/00-project-knowledge-base/01-project-layer/03-architecture/README.md`
-- Actual: file not found
-- Files:
-  - `.knowledge-base.yml`
-- Config source: `.knowledge-base.yml`
-
-## Impact
-`knowledge-base-context` 不能通过索引发现该分类下的正文；`publisher` 写入正文后也无法安全更新分类索引。
-
-## Recommended Fix
-创建缺失的分类索引文件，并写入最小 `## Documents` 空索引。
-
-## Requires Confirmation
-yes
-
-## Suggested Gardener Scope
-Only create:
-- `docs/00-project-knowledge-base/01-project-layer/03-architecture/README.md`
-```
-
----
-
-## Document Anomaly Handling
-
-“文档不对劲”必须先证据化，再选择处理路径。`auditor` 负责发现和报告；`author` 负责语义修订草稿；`gardener` 负责确认范围内的机械维护或结构整理。
-
-| 类型 | 示例 | 处理路径 |
-| --- | --- | --- |
-| Content Drift | 文档声称路径、命令、skill 名称与仓库现状不一致 | `auditor` 报告证据 -> `author` 生成修订草稿 -> `publisher/gardener` 应用 |
-| Content Quality | 标题泛、缺摘要、结构混乱、来源不清 | `auditor` 报告质量问题 -> `author` 改写草稿 |
-| Duplicate | 两篇文档主题重复且结论冲突 | `auditor` 报告重复关系 -> 用户确认合并/保留/归档 |
-| Stale | 文档引用旧目录、旧命令、旧 skill | `auditor` 报告过期引用 -> `gardener` 按确认范围替换 |
-| Orphan | 正文存在但未进入分类索引 | `auditor` 报告孤儿文档 -> `gardener` 补索引或按确认归档 |
-| Misclassified | 内容属于 architecture，却放在 test-cases | `auditor` 报告分类不匹配 -> 用户确认迁移 |
-
-内容异常规则：
-
-- `auditor` 可以指出正文异常，但必须给出证据；不能只写“感觉不清楚”。
-- 事实性改写必须先进入 `knowledge-base-author` 生成修订草稿。
-- 重复、迁移、归档必须让用户确认范围。
-- 纯机械问题，如缺索引、链接腐烂、摘要格式不统一，可由 `gardener` 在确认后修复。
-- 语义问题，如内容过时、两篇文档冲突、分类不匹配，必须先报告给用户确认。
-
-内容异常示例：
-
-```markdown
-# Knowledge Base Audit Report
-
-## Status
-Content Drift
-
-## Summary
-文档引用的知识库路径与 `.knowledge-base.yml` 当前 root 不一致。
-
-## Evidence
-- Expected: 当前知识库 root 来自 `.knowledge-base.yml`
-- Actual: 文档正文硬编码了旧路径
-- Files:
-  - `docs/00-project-knowledge-base/01-project-layer/03-architecture/agent-skill-harness.md`
-  - `.knowledge-base.yml`
-- Config source: `.knowledge-base.yml`
-
-## Impact
-后续 Agent 可能按旧路径读取知识，绕过配置入口和索引结构。
-
-## Recommended Fix
-将正文中的旧路径改为配置驱动描述，避免硬编码 root。
-
-## Requires Confirmation
-yes
-
-## Suggested Gardener Scope
-Only edit the path reference in:
-- `docs/00-project-knowledge-base/01-project-layer/03-architecture/agent-skill-harness.md`
-```
-
----
-
-## 反馈回路
-
-### 发布反馈
-
-```text
-author 草稿
-  -> publisher 写入正文
-  -> publisher 更新索引
-  -> publisher 自检
-     - 正文文件存在
-     - 分类来自配置
-     - 分类索引包含正文链接
-     - 链接路径可达
-     - 无未确认覆盖
-  -> 成功才汇报完成
-```
-
-### 治理反馈
-
-```text
-auditor 扫描配置、索引、正文
-  -> report-only
-  -> 用户确认范围
-  -> gardener apply
-  -> gardener 最小自检
-  -> 失败则回到 auditor 报告
-```
-
-### 规则反馈
-
-当 Agent 出现新失败模式时，维护者应把失败转成以下至少一种约束：
-
-- skill 的禁止行为。
-- Common Mistakes。
-- 验收场景。
-- 后续自动检查器规则。
-
----
-
-## 失败模式与对策
-
-| 失败模式 | 风险 | Harness 对策 |
-| --- | --- | --- |
-| 一步到位 | 一个 skill 又读又写又治理，耗尽上下文 | router 分流，author/publisher/auditor/gardener 分权 |
-| 过早宣布完成 | 写了正文但忘记索引 | publisher 发布自检 |
-| 过早标记功能完成 | 没有验证链接和冲突 | 自检失败不得宣布完成 |
-| 坏模式复制 | 复制旧目录猜测、跳过配置 | context/publisher 强制读 `.knowledge-base.yml` |
-| 上下文过载 | 一次加载全库正文 | context 限制全文数量，其余摘要 |
-| 治理越权 | “整理一下”导致批量改库 | auditor report-only，gardener 需确认范围 |
-| init 覆盖 | 半初始化状态被重置 | Bootstrap Gate 区分 Empty 与 Partial/Broken |
-
----
-
-## 验收标准
-
-新体系满足以下条件才算设计落地：
-
-1. Agent 能仅凭 skill 名称和 description 分辨 router、init、context、author、publisher、auditor、gardener。
-2. 无知识库时，普通读写不会偷偷创建文件；明确初始化才进入 `knowledge-base-init`。
-3. Partial/Broken 状态不会被 init 覆盖，而是先进入 `knowledge-base-auditor`。
-4. 查询只通过 `.knowledge-base.yml` 和索引定位正文，不直接扫目录。
-5. 写正文必须经过 `author -> publisher`，author 不落盘。
-6. publisher 写完必须更新相关索引并执行自检。
-7. auditor 默认只报告，不修改文件。
-8. gardener 必须有审计报告或用户明确范围。
-9. 分类模糊、文件冲突、未配置分类都必须询问。
-10. 普通写作路径不加载治理规则。
-11. auditor 对 Partial、Broken、Conflict 和文档异常必须输出固定 Audit Report Protocol。
-12. 文档异常必须包含证据、影响、建议修复和确认范围，不能直接重写正文。
-
----
-
-## 后续落地顺序
-
-后续实现应按以下顺序拆分 skill：
-
-1. `knowledge-base-router`：先实现 Bootstrap Gate 和路由规则。
-2. `knowledge-base-init`：实现 Empty 状态初始化。
-3. `knowledge-base-context`：实现只读索引检索。
-4. `knowledge-base-author`：实现草稿生成规范。
-5. `knowledge-base-publisher`：实现写入、命名、索引、自检。
-6. `knowledge-base-auditor`：实现 report-only 审计。
-7. `knowledge-base-gardener`：实现确认后维护。
-
-自动化检查器、CI 阻断、后台文档园丁任务属于第二阶段。第一阶段先把约束落到 `SKILL.md`、中英文说明和验收场景。
+## 父 Spec 验收标准
+
+- 子 spec 覆盖全部 skill 和共享契约。
+- 每个子 spec 都引用本文作为 parent spec。
+- 父 spec 不包含足以直接实现某个 skill 的全部细节，避免成为巨型开发输入。
+- 所有子 spec 使用相同的 skill 名称、配置入口、索引模型和报告协议。
+- 后续 implementation plan 必须选择一个子 spec 作为输入，不直接以本文作为唯一输入。
 
 ---
 
