@@ -143,15 +143,25 @@ Writing Skills 参数：
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-router/context/
+.agents/skills/knowledge-base-router/knowledge-base-context/
 ├── SKILL.md
-└── zh-CN.md
+├── zh-CN.md
+└── agents/
+    └── openai.yaml
 ```
+
+调用控制：
+
+- 目录名必须是 `knowledge-base-context`，与 `SKILL.md` frontmatter 的 `name` 一致。
+- `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
+- 如目标运行时支持 Claude Code 扩展，`SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`。
+- 缺少 `knowledge-base-router` handoff payload 时，必须拒绝执行并要求先进入 router。
 
 `SKILL.md` 必备章节：
 
 - Overview
 - When to Use
+- Invocation Control
 - Read-Only Contract
 - Browse Mode
 - Search Mode

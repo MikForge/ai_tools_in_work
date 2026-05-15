@@ -85,7 +85,7 @@ knowledge_base:
 - 文件名不是该分类的 `index`。
 - 通过分类索引可发现。
 
-位于分类目录但未被分类索引引用的 Markdown 是 Orphan 候选，只能由 `auditor` 报告，再由 `gardener` 在确认后补索引或归档。
+位于分类目录但未被分类索引引用的 Markdown 是 Orphan 候选，只能由 `knowledge-base-auditor` 报告，再由 `knowledge-base-gardener` 在确认后补索引或归档。
 
 以下不视为知识库正文：
 
@@ -115,10 +115,10 @@ knowledge_base:
 - `layer` 由 `categories[].path` 的第一段确定，例如 `01-project-layer/03-architecture` 的 layer 是 `01-project-layer`。
 - layer index 固定使用 `{root}/{layer}/README.md`。
 - category index 使用 `{root}/{categories[].path}/{categories[].index}`。
-- `context` 通过索引发现文档，不直接扫描目录。
-- `publisher` 写入正文后必须更新分类索引。
-- `auditor` 可以扫描配置、索引和正文来发现异常，但默认只报告。
-- `gardener` 可以在确认后修复索引，但不能扩大报告范围。
+- `knowledge-base-context` 通过索引发现文档，不直接扫描目录。
+- `knowledge-base-publisher` 写入正文后必须更新分类索引。
+- `knowledge-base-auditor` 可以扫描配置、索引和正文来发现异常，但默认只报告。
+- `knowledge-base-gardener` 可以在确认后修复索引，但不能扩大报告范围。
 
 索引条目格式：
 
@@ -137,7 +137,7 @@ knowledge_base:
 条目排序：
 
 - 同一分类索引内按文件名升序。
-- 重新排序属于机械修复，可由 `gardener` 在确认后执行。
+- 重新排序属于机械修复，可由 `knowledge-base-gardener` 在确认后执行。
 
 ---
 
@@ -203,7 +203,7 @@ yes | no
 - `Evidence` 必须引用实际路径、配置字段、索引链接或正文片段位置，不能只写主观判断。
 - `Recommended Fix` 只能是建议，不代表已经修复。
 - `Suggested Next Skill` 必须与异常类型一致；init-compatible Partial 使用 `knowledge-base-init`，语义改写使用 `knowledge-base-author`，结构修复使用 `knowledge-base-gardener`。
-- `Suggested Gardener Scope` 是 gardener 执行上限，`gardener` 不能自行扩大范围。
+- `Suggested Gardener Scope` 是 `knowledge-base-gardener` 执行上限，`knowledge-base-gardener` 不能自行扩大范围。
 - `Severity=blocking` 表示 router/publisher/context 必须停止普通读写。
 - `Severity=warning` 表示普通读取可继续，但发布或治理前需要确认。
 - `Severity=info` 表示不阻塞，仅用于维护提示。

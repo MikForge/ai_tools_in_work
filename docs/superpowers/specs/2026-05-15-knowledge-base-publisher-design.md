@@ -20,7 +20,7 @@
 
 - Markdown 正文草稿。
 - 操作类型：add、update、rename、index-only。
-- 目标分类，可选。
+- `category_hint`，可选，来自用户、router 或 author 建议；不能视为最终分类。
 - 文件名，可选。
 - 用户确认的覆盖或另存选择。
 - `knowledge-base-router` 传入的 publish/update/rename/index-only handoff payload。
@@ -47,7 +47,7 @@
 
 | 操作 | 前置条件 | 允许行为 |
 | --- | --- | --- |
-| add | 目标文件不存在 | 写入正文，新增分类索引条目 |
+| add | 有确认草稿、确认发布意图，且目标文件不存在 | 确认分类后写入正文，新增分类索引条目 |
 | update | 目标文件存在且用户确认更新 | 最小覆盖目标正文，保持索引可达 |
 | rename | 目标文件存在，新文件名未冲突，且分类不变 | 同分类内重命名文件并更新分类索引 |
 | index-only | 文件已存在、位于分类目录、未被索引引用 | 只补分类索引条目，不改正文 |
@@ -59,7 +59,7 @@
 ## 发布流程
 
 1. 读取 `.knowledge-base.yml`。
-2. 确认目标分类来自配置。
+2. 解析并确认目标分类来自配置。
 3. 确认或生成 `kebab-case` 文件名。
 4. 检查目标文件是否存在。
 5. 冲突时询问 update、save-as 或 cancel。
@@ -76,8 +76,10 @@
 优先级：
 
 1. 用户明确指定分类。
-2. author 的分类建议。
+2. router 传入的 `category_hint` 或 author 的分类建议。
 3. 根据 `categories[].name` 和 `description` 判断。
+
+router 和 author 只能提供分类建议或 hint。publisher 必须基于 `.knowledge-base.yml` 和用户确认决定最终分类。
 
 若多分类可匹配，publisher 必须询问。publisher 不创建新分类；用户要求新分类时，应建议先更新配置或进入后续治理流程。
 
@@ -174,15 +176,25 @@ Writing Skills 参数：
 目标目录：
 
 ```text
-.agents/skills/knowledge-base-router/publisher/
+.agents/skills/knowledge-base-router/knowledge-base-publisher/
 ├── SKILL.md
-└── zh-CN.md
+├── zh-CN.md
+└── agents/
+    └── openai.yaml
 ```
+
+调用控制：
+
+- 目录名必须是 `knowledge-base-publisher`，与 `SKILL.md` frontmatter 的 `name` 一致。
+- `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
+- 如目标运行时支持 Claude Code 扩展，`SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`。
+- 缺少 `knowledge-base-router` handoff payload，或 `confirmation_status` 不是 `confirmed` 时，必须拒绝执行并要求回到 router。
 
 `SKILL.md` 必备章节：
 
 - Overview
 - When to Use
+- Invocation Control
 - Publish Inputs
 - Operation Boundaries
 - Category Resolution

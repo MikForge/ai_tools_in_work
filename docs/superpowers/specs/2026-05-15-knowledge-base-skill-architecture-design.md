@@ -76,8 +76,8 @@ knowledge-base-router
 
 1. **配置是唯一入口**：知识库根目录、分类、索引位置由 `.knowledge-base.yml` 决定。
 2. **索引优先发现**：读取正文必须经由配置和 README 索引，不直接 `find` 或 `ls` 扫正文目录。
-3. **写作与落盘分离**：`author` 只生成草稿；`publisher` 才能写文件和更新索引。
-4. **治理默认报告**：`auditor` 默认只读；`gardener` 必须基于报告或明确范围执行。
+3. **写作与落盘分离**：`knowledge-base-author` 只生成草稿；`knowledge-base-publisher` 才能写文件和更新索引。
+4. **治理默认报告**：`knowledge-base-auditor` 默认只读；`knowledge-base-gardener` 必须基于报告或明确范围执行。
 5. **Bootstrap Gate 先行**：router 在任何读写治理动作前，先判断 Ready、Empty、Partial、Broken。
 6. **不确定就停下**：操作类型、分类、目标文件、覆盖意图不清楚时，一次只问一个问题。
 7. **报告协议固定**：Partial、Broken、Conflict 和文档异常必须输出 contract 中定义的 Audit Report Protocol。
@@ -99,63 +99,77 @@ knowledge-base-router
 ├── zh-CN.md
 ├── references/
 │   └── contract.md
-├── init/
+├── knowledge-base-init/
 │   ├── SKILL.md
-│   └── zh-CN.md
-├── context/
+│   ├── zh-CN.md
+│   └── agents/openai.yaml
+├── knowledge-base-context/
 │   ├── SKILL.md
-│   └── zh-CN.md
-├── author/
+│   ├── zh-CN.md
+│   └── agents/openai.yaml
+├── knowledge-base-author/
 │   ├── SKILL.md
-│   └── zh-CN.md
-├── publisher/
+│   ├── zh-CN.md
+│   └── agents/openai.yaml
+├── knowledge-base-publisher/
 │   ├── SKILL.md
-│   └── zh-CN.md
-├── auditor/
+│   ├── zh-CN.md
+│   └── agents/openai.yaml
+├── knowledge-base-auditor/
 │   ├── SKILL.md
-│   └── zh-CN.md
-└── gardener/
+│   ├── zh-CN.md
+│   └── agents/openai.yaml
+└── knowledge-base-gardener/
     ├── SKILL.md
-    └── zh-CN.md
+    ├── zh-CN.md
+    └── agents/openai.yaml
 ```
+
+目录规则：
+
+- 任何包含 `SKILL.md` 的目录名必须与该文件 frontmatter 的 `name` 完全一致。
+- `knowledge-base-router` 是唯一 public skill，允许隐式触发。
+- `knowledge-base-*` internal worker 是真实 skill，但必须禁用隐式触发，只能由 router、auditor 或完整 handoff payload 驱动。
+- internal worker 的 `agents/openai.yaml` 必须设置 `policy.allow_implicit_invocation: false`。
+- 如目标运行时支持 Claude Code 扩展，internal worker 的 `SKILL.md` frontmatter 应设置 `disable-model-invocation: true` 和 `user-invocable: false`；不支持时也必须在正文中拒绝缺少 handoff 的直接外部请求。
 
 | Component | 职责 | 权限 |
 | --- | --- | --- |
 | `knowledge-base-router` | 公共入口、环境判定、意图识别、路由编排 | 只读轻量状态，不写文件 |
 | `references/contract.md` | 共享配置、索引、命名和报告协议 | 只读 reference，不是 skill |
-| `init` / `knowledge-base-init` | 从零初始化配置、目录、索引模板 | 仅 Empty 或 init-compatible Partial 状态下写 scaffold |
-| `context` / `knowledge-base-context` | 按需读取知识库正文或摘要 | 只读，不直接扫目录 |
-| `author` / `knowledge-base-author` | 生成或改写 Markdown 正文草稿 | 不落盘，不决定最终路径 |
-| `publisher` / `knowledge-base-publisher` | 分类、命名、写入、冲突处理、索引更新 | 只改目标正文和相关索引 |
-| `auditor` / `knowledge-base-auditor` | 审计配置、索引、正文一致性 | 默认只读，输出报告 |
-| `gardener` / `knowledge-base-gardener` | 去重、迁移、索引修复、腐烂修复 | 基于报告或明确确认执行 |
+| `knowledge-base-init` | 从零初始化配置、目录、索引模板 | 仅 Empty 或 init-compatible Partial 状态下写 scaffold |
+| `knowledge-base-context` | 按需读取知识库正文或摘要 | 只读，不直接扫目录 |
+| `knowledge-base-author` | 生成或改写 Markdown 正文草稿 | 不落盘，不决定最终路径 |
+| `knowledge-base-publisher` | 分类、命名、写入、冲突处理、索引更新 | 只改目标正文和相关索引 |
+| `knowledge-base-auditor` | 审计配置、索引、正文一致性 | 默认只读，输出报告 |
+| `knowledge-base-gardener` | 去重、迁移、索引修复、腐烂修复 | 基于报告或明确确认执行 |
 
 ---
 
 ## 分层约束
 
 ```text
-router
-  -> init
-  -> context
-  -> author
-  -> publisher
-  -> auditor
-  -> gardener
+knowledge-base-router
+  -> knowledge-base-init
+  -> knowledge-base-context
+  -> knowledge-base-author
+  -> knowledge-base-publisher
+  -> knowledge-base-auditor
+  -> knowledge-base-gardener
 ```
 
 约束规则：
 
-- `router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
+- `knowledge-base-router` 可以调用所有专职 skill，但不能生成正文、写文件或做治理。
 - 所有 skill 必须引用共享 contract spec 的相关章节，不能自行定义另一套配置、索引、命名或报告协议。
-- 用户、agent、其他 workflow/skill 的知识库请求都必须先进入 `router`，不得直接触发 internal worker。
+- 用户、agent、其他 workflow/skill 的知识库请求都必须先进入 `knowledge-base-router`，不得直接触发 internal worker。
 - internal worker 只能在 router、auditor 或明确 handoff 后执行。
-- `init` 只能处理 Empty 或 init-compatible Partial，不能覆盖或修复 repair-required Partial/Broken。
-- `context` 只读配置和索引，不调用 `publisher` 或 `gardener`。
-- `author` 可以使用 `context` 的结果，但不能自己全库扫描或落盘。
-- `publisher` 可读取目标文件和相关索引，但不能做全库治理。
-- `auditor` 可读取全库配置、索引、正文，但默认只报告。
-- `gardener` 必须基于 `auditor` 报告或用户明确范围执行。
+- `knowledge-base-init` 只能处理 Empty 或 init-compatible Partial，不能覆盖或修复 repair-required Partial/Broken。
+- `knowledge-base-context` 只读配置和索引，不调用 `knowledge-base-publisher` 或 `knowledge-base-gardener`。
+- `knowledge-base-author` 可以使用 `knowledge-base-context` 的结果，但不能自己全库扫描或落盘。
+- `knowledge-base-publisher` 可读取目标文件和相关索引，但不能做全库治理。
+- `knowledge-base-auditor` 可读取全库配置、索引、正文，但默认只报告。
+- `knowledge-base-gardener` 必须基于 `knowledge-base-auditor` 报告或用户明确范围执行。
 
 ---
 
@@ -163,10 +177,10 @@ router
 
 | Harness 护栏 | 知识库体系落地 |
 | --- | --- |
-| 上下文工程 | `context` 通过 `.knowledge-base.yml` 和 README 索引逐级读取，限制全文加载数量 |
+| 上下文工程 | `knowledge-base-context` 通过 `.knowledge-base.yml` 和 README 索引逐级读取，限制全文加载数量 |
 | 架构约束 | router/context/author/publisher/auditor/gardener/init 分层，明确读写权限和禁止反向越权 |
-| 反馈回路 | `publisher` 发布后自检；`auditor` 把异常转成报告；失败案例回写到 skill 规则 |
-| 熵管理 | `auditor` 发现重复、过期、孤儿文档、索引腐烂；`gardener` 在确认后修复 |
+| 反馈回路 | `knowledge-base-publisher` 发布后自检；`knowledge-base-auditor` 把异常转成报告；失败案例回写到 skill 规则 |
+| 熵管理 | `knowledge-base-auditor` 发现重复、过期、孤儿文档、索引腐烂；`knowledge-base-gardener` 在确认后修复 |
 
 ---
 
