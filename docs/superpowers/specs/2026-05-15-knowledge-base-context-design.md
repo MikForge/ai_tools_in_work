@@ -43,7 +43,7 @@
 | 模式 | 触发 | 行为 |
 | --- | --- | --- |
 | 浏览模式 | 无 query/category/path | 从 root index 开始逐层展示 |
-| 搜索模式 | 有 query | 匹配 category -> 读分类索引 -> 匹配正文 |
+| 搜索模式 | 有 query | 通过配置分类和已配置分类索引做索引级搜索，再按命中加载正文 |
 | 分类限定搜索 | 有 query + category | 跳过分类匹配，只读指定分类索引 |
 | 精确路径加载 | 有 path | 校验路径属于配置 root 和分类，且被分类索引引用，再读取 |
 
@@ -53,16 +53,16 @@
 
 1. 读取 `.knowledge-base.yml`。
 2. 读取 root index。
-3. 根据 query 匹配 `categories[].name` 和 `description`。
-4. 分类唯一命中时，根据 `categories[].path` 的第一段读取 layer index。
-5. 分类多命中时列出候选，让用户选择。
-6. 验证 layer index 指向目标 category index。
+3. 根据 query 匹配 `categories[].name` 和 `description`，得到候选分类。
+4. 若用户指定 category，只使用该分类；若分类多命中且用户意图需要精确分类，列出候选让用户选择。
+5. 若分类未命中或 query 更像主题搜索，遍历所有已配置 category index 的索引条目做索引级搜索。
+6. 对候选分类，先根据 `categories[].path` 的第一段读取并验证 layer index。
 7. 读取 category index。
-8. 在 category index 中按文件名、标题、摘要匹配正文。
+8. 在 category index 中按文件名、链接文本、摘要匹配正文。
 9. 加载最相关的 1-3 篇全文。
 10. 其余命中只返回标题、路径和摘要。
 
-搜索不得跳过分类索引直接读取目录文件清单。
+搜索可以遍历已配置的 category index，但不得跳过分类索引直接读取目录文件清单。
 
 ---
 
@@ -124,8 +124,20 @@ No knowledge base documents matched "<query>".
 
 ```yaml
 name: knowledge-base-context
-description: Loads relevant project knowledge-base documents through configured indexes without side effects. Use when searching, browsing, or injecting knowledge-base context before other work.
+description: Use when the user needs to search, browse, or load project knowledge-base context without changing files.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-context` |
+| Skill 类型 | Technique |
+| 触发条件 | 用户要查询、浏览、加载知识库，或其他 skill 需要先注入相关知识库上下文。 |
+| 要解决的具体问题 | 防止 agent 不知道看什么、直接扫正文目录、加载过多文档或编造不存在的知识。 |
+| 反面案例 | 用户要写入、发布、修复、迁移或去重时，不由 context 执行。 |
+| 已知 rationalization | “索引可能不全所以直接 find”、“多读点全文更稳”、“路径在目录里就可以读”。 |
+| 代码示例场景 | 用户问“有没有构建配置”，context 读取配置和索引，最多加载 3 篇相关正文，其余只列标题/路径/摘要。 |
 
 目标目录：
 

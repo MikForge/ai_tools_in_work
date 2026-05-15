@@ -68,8 +68,11 @@ knowledge_base:
 
 - skill 不根据常见目录名猜测知识库位置。
 - 已有配置优先于默认模板。
-- 除 `knowledge-base-init` 明确初始化外，其他 skill 不创建或修改 `.knowledge-base.yml`。
+- 除 `knowledge-base-init` 在 Empty 或 init-compatible Partial 中创建配置、`knowledge-base-gardener` 在审计报告和用户确认范围内修复配置外，其他 skill 不创建或修改 `.knowledge-base.yml`。
 - categories 是发布和检索的唯一分类来源，不自动新增未配置分类。
+- `root`、`index`、`categories[].path`、`categories[].index` 必须是相对路径，不允许绝对路径或 `..`。
+- `categories[].name` 必须唯一。
+- `categories[].path` 不得互相包含或指向同一目录。
 
 ---
 
@@ -185,18 +188,22 @@ blocking | warning | info
 ## Recommended Fix
 给出建议动作，但不直接执行。
 
+## Suggested Next Skill
+knowledge-base-init | knowledge-base-gardener | knowledge-base-author | user-manual-fix | none
+
 ## Requires Confirmation
 yes | no
 
 ## Suggested Gardener Scope
-列出 `knowledge-base-gardener` 被允许修改的文件和动作范围。
+当 `Suggested Next Skill` 是 `knowledge-base-gardener` 时，列出 gardener 被允许修改的文件和动作范围；否则写 `n/a`。
 ```
 
 协议规则：
 
 - `Evidence` 必须引用实际路径、配置字段、索引链接或正文片段位置，不能只写主观判断。
 - `Recommended Fix` 只能是建议，不代表已经修复。
-- `Suggested Gardener Scope` 是执行上限，`gardener` 不能自行扩大范围。
+- `Suggested Next Skill` 必须与异常类型一致；init-compatible Partial 使用 `knowledge-base-init`，语义改写使用 `knowledge-base-author`，结构修复使用 `knowledge-base-gardener`。
+- `Suggested Gardener Scope` 是 gardener 执行上限，`gardener` 不能自行扩大范围。
 - `Severity=blocking` 表示 router/publisher/context 必须停止普通读写。
 - `Severity=warning` 表示普通读取可继续，但发布或治理前需要确认。
 - `Severity=info` 表示不阻塞，仅用于维护提示。
@@ -226,7 +233,7 @@ yes | no
 使用规则：
 
 - 子 spec 必须直接链接本 spec 的相关章节，例如 [配置契约](#配置契约)、[索引模型](#索引模型)、[Audit Report Protocol](#audit-report-protocol)、[文档异常分类](#文档异常分类)。
-- 实现 `knowledge-base-router`、`knowledge-base-context`、`knowledge-base-publisher`、`knowledge-base-auditor`、`knowledge-base-gardener`、`knowledge-base-init` 时，必须把本 spec 作为 required context。
+- 实现 `knowledge-base-router`、`knowledge-base-context`、`knowledge-base-publisher`、`knowledge-base-auditor`、`knowledge-base-gardener`、`knowledge-base-init` 时，必须把本 spec 作为必读上下文。
 - Writing Skills 不能根据本 spec 生成 `knowledge-base-contract/SKILL.md`。
 - 如果契约需要变更，先修改本 spec，再同步检查所有子 spec 的依赖章节，不在单个 skill 中分叉契约内容。
 
@@ -238,6 +245,7 @@ yes | no
 - 没有子 spec 重新定义 `.knowledge-base.yml` 字段语义。
 - 没有子 spec 允许直接扫描正文目录作为文档发现路径。
 - Audit Report Protocol 字段完整且可被 gardener 消费。
+- Audit Report Protocol 包含 `Suggested Next Skill`，并能把 init-compatible Partial 路由到 init。
 - Audit Report Protocol 包含 `Severity`，并能表达 blocking、warning、info。
 - 文档异常分类覆盖正文漂移、质量、重复、过期、孤儿、错分六类问题。
-- 其他 knowledge-base skill 以本 spec 的章节作为 required context，不生成或维护独立的 contract skill/reference 包。
+- 其他 knowledge-base skill 以本 spec 的章节作为必读上下文，不生成或维护独立的 contract skill 或契约副本。

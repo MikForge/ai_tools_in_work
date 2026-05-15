@@ -64,7 +64,7 @@
 5. 冲突时询问 update、save-as 或 cancel。
 6. 写入正文或执行最小更新。
 7. 更新分类索引。
-8. 必要时补齐 layer/root 索引入口。
+8. 必要时补齐 layer/root 索引入口；只补链接条目，不创建缺失索引文件。
 9. 执行发布自检。
 10. 汇报改动文件。
 
@@ -99,7 +99,7 @@
 publisher 只更新：
 
 - 目标分类索引。
-- 必要时的 layer/root 索引入口。
+- 必要时的 layer/root 索引入口，仅限索引文件已存在时补链接条目。
 
 它不做：
 
@@ -155,8 +155,20 @@ publisher 只更新：
 
 ```yaml
 name: knowledge-base-publisher
-description: Publishes knowledge-base drafts by resolving category and filename, writing content, updating indexes, and running publish self-checks. Use when a confirmed draft should be added, updated, renamed, or indexed in the project knowledge base.
+description: Use when a confirmed knowledge-base draft should be added, updated, renamed, or indexed in an already bootstrapped project knowledge base.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-publisher` |
+| Skill 类型 | Discipline-enforcing |
+| 触发条件 | 用户已有确认正文草稿，并要求新增、更新、重命名或只补索引到 Ready 状态知识库。 |
+| 要解决的具体问题 | 防止 agent 写正文却不更新索引、覆盖冲突未确认、创建未配置分类或把发布混成全库治理。 |
+| 反面案例 | 知识库不是 Ready、缺索引文件、需要跨分类迁移/去重/归档时，不使用 publisher 直接修。 |
+| 已知 rationalization | “先写文件再说”、“索引稍后补”、“分类不存在我建一个”、“rename 顺便跨目录移动”。 |
+| 代码示例场景 | 用户确认一篇草稿保存到 `architecture`，publisher 解析分类和文件名，写正文，更新分类索引并自检。 |
 
 目标目录：
 

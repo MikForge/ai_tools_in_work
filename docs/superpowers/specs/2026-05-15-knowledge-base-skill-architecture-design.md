@@ -19,7 +19,8 @@
 
 子 spec 负责回答：
 
-- 单个 skill 或共享契约的输入输出、流程、错误处理和验收场景。
+- 单个可落地 skill 的输入输出、流程、错误处理和验收场景。
+- 共享契约 spec 只定义跨 skill 的配置、索引、命名和报告协议，不回答 `SKILL.md` 落地问题。
 - 该部分如何落成 `SKILL.md`、`zh-CN.md`、模板或测试提示。
 
 ---
@@ -85,6 +86,8 @@ knowledge-base-router
 ## 可落地 Skill 列表
 
 [knowledge-base-contract-design](2026-05-15-knowledge-base-contract-design.md) 是共享契约 spec，不生成 `.agents/skills/knowledge-base-contract/`，也不作为用户可调用 skill。所有可落地 skill 必须把它作为规范来源读取，而不是复制出各自版本的配置、索引或报告协议。
+
+本体系使用稳定的 `knowledge-base-*` 家族前缀，优先保证一组 skill 在路由、文档和用户心智里的可发现性；这是对通用 skill 命名建议的有意例外。
 
 | Skill | 职责 | 权限 |
 | --- | --- | --- |

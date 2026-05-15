@@ -27,9 +27,9 @@
 
 输入：
 
-- `.knowledge-base.yml`。
-- root、layer、category 索引。
-- 正文文档。
+- `.knowledge-base.yml`，如果存在。
+- root、layer、category 索引，如果存在。
+- 配置 root 下的正文文档候选，如果 root 存在。
 - 可选用户关注范围。
 
 输出：
@@ -37,6 +37,7 @@
 - 一个或多个 Audit Report Protocol 报告。
 - 风险等级：blocking、warning、info。
 - 建议修复顺序。
+- 每个报告的 `Suggested Next Skill`。
 
 检查内容：
 
@@ -46,6 +47,7 @@
 - 正文是否未被索引引用。
 - 是否存在重复主题、过期内容、空索引、腐烂链接。
 - 是否存在正文漂移、质量异常、分类不匹配、事实冲突等文档异常。
+- Partial 是否属于 init-compatible bootstrap，还是必须由 gardener 修复。
 
 ---
 
@@ -66,11 +68,12 @@
 允许操作：
 
 - 创建缺失索引。
+- 在报告和用户确认范围内补齐或修正 `.knowledge-base.yml`。
 - 修复索引链接。
 - 补充孤儿文档索引。
 - 按确认范围移动错分文档。
 - 按确认范围归档或合并重复文档。
-- 机械统一索引摘要或排序。
+- 在已有来源明确时搬运或统一索引摘要，或机械排序。
 
 禁止操作：
 
@@ -78,6 +81,7 @@
 - 不做未确认的大规模结构改动。
 - 不删除正文而不保留迁移说明或用户确认。
 - 不把语义改写伪装成机械修复。
+- 不生成新的语义摘要；需要新摘要时交给 author。
 
 模式规则：
 
@@ -99,6 +103,12 @@
 8. 按风险等级排序。
 
 auditor 默认不执行任何修复。
+
+Partial 判定规则：
+
+- 仅缺初始化 scaffold、默认 root 为空或 scaffold-only、且不会覆盖既有文件时，报告为 init-compatible Partial，并建议 `knowledge-base-init`。
+- 任何涉及已有正文、未知文件、孤儿文档、配置修正、索引修复、迁移或可能覆盖文件的情况，报告为 repair-required Partial，并建议 `knowledge-base-gardener`。
+- Broken 不进入 init；必须先由 gardener 或用户手动修复到可解析状态。
 
 ---
 
@@ -138,6 +148,8 @@ auditor 默认不执行任何修复。
 5. 用户说“整理一下”，gardener 不直接执行，必须先 auditor。
 6. gardener 执行后只修改确认范围内的文件。
 7. 未明确 apply 时，gardener 只输出 dry-run 计划。
+8. 默认 root 已存在但为空且无配置时，auditor 可输出 init-compatible Partial，不创建文件。
+9. 默认 root 已存在且含未知 Markdown 时，auditor 输出 repair-required Partial，不建议 init。
 
 ---
 
@@ -151,8 +163,20 @@ auditor 默认不执行任何修复。
 
 ```yaml
 name: knowledge-base-auditor
-description: Audits project knowledge-base configuration, indexes, links, and document anomalies in report-only mode. Use when the knowledge base may be partial, broken, stale, duplicated, misclassified, or needs inspection before maintenance.
+description: Use when the project knowledge base may be partial, broken, stale, duplicated, misclassified, or needs inspection before maintenance.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-auditor` |
+| Skill 类型 | Discipline-enforcing |
+| 触发条件 | 用户要求检查知识库，router 发现 Partial/Broken，或维护前需要确认异常、风险和修复范围。 |
+| 要解决的具体问题 | 把结构异常、内容异常和修复建议转成固定报告，防止 agent 边检查边改文件。 |
+| 反面案例 | 用户只是读取已 Ready 的知识库正文时，不用 auditor 代替 context。 |
+| 已知 rationalization | “这个缺索引很好修我直接建”、“检查时顺手清理重复”、“报告格式不用那么固定”。 |
+| 代码示例场景 | 配置存在但 category index 缺失，auditor 输出 blocking Partial 报告、Suggested Next Skill 和 Suggested Gardener Scope，不创建文件。 |
 
 目标目录：
 
@@ -187,8 +211,20 @@ description: Audits project knowledge-base configuration, indexes, links, and do
 
 ```yaml
 name: knowledge-base-gardener
-description: Applies confirmed knowledge-base maintenance repairs from audit reports, including index fixes, orphan handling, moves, archival, and duplicate cleanup. Use only after an audit report and explicit user-confirmed scope.
+description: Use when the user has an audit report and wants confirmed maintenance repairs applied to the project knowledge base.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-gardener` |
+| Skill 类型 | Discipline-enforcing |
+| 触发条件 | 用户提供或确认 auditor 报告，并明确要在指定范围内执行维护修复。 |
+| 要解决的具体问题 | 在确认范围内修复知识库熵问题，同时防止 agent 擅自扩大范围、语义改写或批量破坏文档。 |
+| 反面案例 | 没有 auditor 报告、没有用户确认范围、只是想写新正文或发布草稿时，不用 gardener。 |
+| 已知 rationalization | “用户说整理一下就是允许我全库改”、“报告只列了几个文件但相关文件我也一起改”、“摘要可以顺手重写”。 |
+| 代码示例场景 | auditor 报告一个 Orphan 文档，用户确认补索引，gardener dry-run 后只修改对应分类索引并自检。 |
 
 目标目录：
 

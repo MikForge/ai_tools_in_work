@@ -53,7 +53,7 @@
 | --- | --- | --- |
 | Ready | `.knowledge-base.yml` 存在，root、index、categories 可解析，关键索引可达 | 正常路由 |
 | Empty | `.knowledge-base.yml` 不存在，默认 root 不存在 | 明确初始化则 `knowledge-base-init`，否则询问是否初始化 |
-| Partial | 只有配置或只有目录，或部分索引缺失 | `knowledge-base-auditor` report-only |
+| Partial | 只有配置或只有目录，或部分索引缺失 | `knowledge-base-auditor` report-only；报告判定后进入 init-compatible bootstrap 或 gardener repair |
 | Broken | 配置格式错误、分类路径冲突、索引不可达 | `knowledge-base-auditor` report-only |
 
 Ready 的最低判定：
@@ -71,6 +71,15 @@ Partial/Broken 的报告要求：
 - 缺配置、缺 root、缺根索引、缺分类索引属于 `Severity=blocking`。
 - 链接腐烂、孤儿正文、摘要缺失属于 `Severity=warning` 或 `info`，由 auditor 判定。
 - router 不自行生成报告正文，只把状态和证据交给 auditor。
+- 如果 Partial 只是缺少 scaffold 且不会覆盖既有文件，auditor 可以建议 `knowledge-base-init` 以 init-compatible Partial 模式补齐。
+- 如果 Partial 涉及既有正文、迁移、索引修复或配置修正，auditor 必须建议 `knowledge-base-gardener`，不能让 init 接管。
+
+Partial 子类型：
+
+| 子类型 | 判定 | 后续 |
+| --- | --- | --- |
+| init-compatible Partial | 仅缺少初始化 scaffold，且所有待写入目标不存在，或默认 root 为空/scaffold-only | auditor 报告后可由 `knowledge-base-init` 补齐 |
+| repair-required Partial | 已有正文、未知文件、冲突索引、配置修正、迁移、孤儿文档或任何会覆盖既有文件的情况 | auditor 报告后只能由 `knowledge-base-gardener` 在确认范围内修复 |
 
 ---
 
@@ -100,6 +109,7 @@ Partial/Broken 的报告要求：
 | --- | --- |
 | Empty + 读写请求 | 询问是否初始化，不自行创建 |
 | Empty + 初始化请求 | 路由 `knowledge-base-init` |
+| Partial + 初始化请求 | 先路由 `knowledge-base-auditor` 判定是否 init-compatible |
 | Partial/Broken + 任意读写请求 | 停止读写，路由 `knowledge-base-auditor` |
 | Ready + 分类模糊 | 一次只问一个分类问题 |
 | Ready + 目标文件冲突 | 路由 publisher 处理冲突确认 |
@@ -113,6 +123,7 @@ Partial/Broken 的报告要求：
 3. 有配置但 root index 缺失，用户说“保存文档”，router 路由 auditor，不写文件。
 4. Ready 状态下用户说“有没有构建配置”，router 路由 context。
 5. Ready 状态下用户说“整理一下知识库”，router 路由 auditor，不直接 gardener。
+6. 默认 root 已存在但无配置时，router 不直接 init，先路由 auditor 判定是否 init-compatible Partial。
 
 ---
 
@@ -122,8 +133,20 @@ Partial/Broken 的报告要求：
 
 ```yaml
 name: knowledge-base-router
-description: Routes project knowledge-base tasks through Bootstrap Gate and delegates to init, context, author, publisher, auditor, or gardener skills. Use when the user asks to work with the project knowledge base or is unsure which knowledge-base skill to invoke.
+description: Use when the user asks to work with the project knowledge base, is unsure which knowledge-base skill to invoke, or repository knowledge-base state must be checked before read/write/maintenance.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-router` |
+| Skill 类型 | Discipline-enforcing |
+| 触发条件 | 用户提出知识库相关读、写、发布、审计、维护或初始化请求；或用户不确定该用哪个 knowledge-base skill。 |
+| 要解决的具体问题 | 防止 agent 跳过 Bootstrap Gate、直接扫目录、直接写文件或把治理请求路由到错误 skill。 |
+| 反面案例 | 用户已经明确调用某个下游 skill 且状态已由 router 判定时，不再重复路由。 |
+| 已知 rationalization | “只是查一下不用检查状态”、“我可以直接看看目录”、“先写了再补索引”。 |
+| 代码示例场景 | 无 `.knowledge-base.yml` 且无默认 root 时，用户说“查项目知识库”，router 只询问是否初始化。 |
 
 目标目录：
 

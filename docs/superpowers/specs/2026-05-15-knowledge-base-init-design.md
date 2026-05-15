@@ -18,9 +18,10 @@
 
 输入：
 
-- router 已判定 Bootstrap Gate = Empty。
+- router 已判定 Bootstrap Gate = Empty，或 auditor 已判定为 init-compatible Partial。
 - 用户明确初始化请求。
 - 默认配置模板。
+- init-compatible Partial 中已存在且可解析的 `.knowledge-base.yml`，只读使用，不修改。
 
 输出：
 
@@ -36,7 +37,7 @@
 - 不覆盖已有默认 root。
 - 不写正文文档。
 - 不处理迁移、合并、修复。
-- 不在 Partial/Broken 状态下强行初始化。
+- 不在 repair-required Partial 或 Broken 状态下强行初始化。
 
 ---
 
@@ -50,18 +51,18 @@ docs/00-project-knowledge-base/
 
 默认 categories 应来自配置模板，不由 agent 临时发明。模板至少覆盖：
 
-| name | path |
-| --- | --- |
-| project-overview | `01-project-layer/01-project-overview` |
-| core-process | `01-project-layer/02-core-process` |
-| architecture | `01-project-layer/03-architecture` |
-| middleware-config | `02-technology-layer/01-middleware-config` |
-| coding-standards | `02-technology-layer/02-coding-standards` |
-| third-party-libraries | `02-technology-layer/03-third-party-libraries` |
-| api-docs | `02-technology-layer/04-api-docs` |
-| prd-docs | `03-assets-layer/01-prd-docs` |
-| technical-solutions | `03-assets-layer/02-technical-solutions` |
-| test-cases | `03-assets-layer/03-test-cases` |
+| name | path | description |
+| --- | --- | --- |
+| project-overview | `01-project-layer/01-project-overview` | Project goals, scope, terminology, and high-level context. |
+| core-process | `01-project-layer/02-core-process` | Core workflows, business processes, and operational sequences. |
+| architecture | `01-project-layer/03-architecture` | Architecture, module relationships, layering, and design decisions. |
+| middleware-config | `02-technology-layer/01-middleware-config` | Middleware, environment, service, and infrastructure configuration notes. |
+| coding-standards | `02-technology-layer/02-coding-standards` | Coding conventions, review rules, style constraints, and implementation norms. |
+| third-party-libraries | `02-technology-layer/03-third-party-libraries` | Third-party dependencies, library usage notes, integration constraints, and upgrade risks. |
+| api-docs | `02-technology-layer/04-api-docs` | Internal or external API contracts, endpoints, schemas, and request examples. |
+| prd-docs | `03-assets-layer/01-prd-docs` | Product requirements, feature narratives, user stories, and acceptance notes. |
+| technical-solutions | `03-assets-layer/02-technical-solutions` | Technical solution proposals, tradeoffs, rollout notes, and decision records. |
+| test-cases | `03-assets-layer/03-test-cases` | Test scenarios, validation notes, QA cases, and regression coverage ideas. |
 
 每个默认 category 必须同时写入 `index: README.md` 和满足 contract 要求的 `description`，不能只写 `name` 与 `path`。
 
@@ -69,16 +70,30 @@ docs/00-project-knowledge-base/
 
 ## 工作流
 
-1. 确认 router 传入 Empty 状态。
-2. 再次检查 `.knowledge-base.yml` 和默认 root 均不存在。
-3. 写入 `.knowledge-base.yml`。
-4. 创建 root、layer、category 目录。
+1. 确认 router 传入 Empty 状态，或 auditor 报告明确标记 init-compatible Partial。
+2. 再次检查要写入的配置、目录和索引不会覆盖既有文件。
+3. 若 `.knowledge-base.yml` 缺失，写入默认配置；若已存在且 auditor 标记可沿用，只读使用。
+4. 按默认配置或已存在配置创建缺失的 root、layer、category 目录。
 5. 创建根索引，列出 layer 入口。
 6. 创建 layer 索引，列出该层 categories。
 7. 创建 category 索引，写入空 `## Documents`。
 8. 汇报创建的文件列表。
 
-如果第 2 步发现任何关键结构已存在，停止并输出 Partial/Broken 审计建议。
+如果第 2 步发现会覆盖既有文件，或发现需要迁移/合并/修复已有正文，停止并输出 repair-required Partial/Broken 审计建议。
+
+init-compatible Partial 仅允许以下情况：
+
+- 默认 root 已存在但为空。
+- 默认 root 只包含 init 模板会生成的目录或索引空壳，且不会覆盖文件。
+- `.knowledge-base.yml` 缺失但 auditor 明确判断没有既有正文需要迁移。
+- 配置存在且可解析、无需修改字段，只缺可安全创建的目录或索引文件。
+
+以下情况必须停止并交给 gardener：
+
+- 任意目标文件已存在且内容不是 init 模板空壳。
+- 分类目录内已有正文或未知 Markdown。
+- 需要修改已有 `.knowledge-base.yml` 字段。
+- 需要移动、归档、合并或重新分类既有文件。
 
 ---
 
@@ -124,8 +139,10 @@ docs/00-project-knowledge-base/
 
 | 场景 | 行为 |
 | --- | --- |
-| `.knowledge-base.yml` 已存在 | 停止，不覆盖 |
-| 默认 root 已存在 | 停止，不覆盖 |
+| `.knowledge-base.yml` 已存在且 auditor 未标记 init-compatible | 停止，不覆盖 |
+| `.knowledge-base.yml` 已存在且 auditor 标记 init-compatible | 只读使用配置，不修改字段 |
+| 默认 root 已存在且为空或只含可安全补齐的 scaffold | 仅在 auditor 标记 init-compatible Partial 后补齐缺失结构 |
+| 默认 root 已存在且含正文或未知文件 | 停止，建议 auditor/gardener |
 | 创建中途失败 | 汇报已创建文件和失败点，不宣布完成 |
 | 用户要求顺便写正文 | 拒绝混合，初始化后交给 author/publisher |
 
@@ -134,8 +151,8 @@ docs/00-project-knowledge-base/
 ## 验收场景
 
 1. Empty 状态初始化后，root、layer、category、索引文件均存在。
-2. 已有 `.knowledge-base.yml` 时 init 拒绝覆盖。
-3. 已有默认 root 时 init 拒绝覆盖。
+2. 已有 `.knowledge-base.yml` 时 init 拒绝覆盖；若 auditor 标记 init-compatible，只读沿用配置。
+3. 已有默认 root 且 auditor 标记 init-compatible Partial 时，init 只补齐缺失 scaffold，不覆盖文件。
 4. init 不创建任何正文文档。
 5. init 完成汇报文件清单，不声称执行了发布或治理。
 
@@ -147,8 +164,20 @@ docs/00-project-knowledge-base/
 
 ```yaml
 name: knowledge-base-init
-description: Initializes a project knowledge base from an empty state by creating `.knowledge-base.yml`, directories, and index templates. Use when Bootstrap Gate is Empty and the user explicitly requests knowledge-base initialization.
+description: Use when Bootstrap Gate is Empty or an auditor report marks init-compatible Partial, and the user explicitly wants to initialize the project knowledge base.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-init` |
+| Skill 类型 | Technique |
+| 触发条件 | 用户明确要求初始化知识库，且 router 判定 Empty，或 auditor 报告标记 init-compatible Partial。 |
+| 要解决的具体问题 | 从零创建可被 router/context/publisher/auditor 共同识别的配置、目录和索引 scaffold。 |
+| 反面案例 | 已存在需要迁移、合并、索引修复或配置修复的知识库结构时，不使用 init。 |
+| 已知 rationalization | “root 已经有了我顺便覆盖一下”、“缺几个 README 我直接补，不用审计”、“初始化时顺手写第一篇正文”。 |
+| 代码示例场景 | 无 `.knowledge-base.yml`、无默认 root，用户说“初始化知识库”，init 创建配置、root、layer/category 目录和索引模板。 |
 
 目标目录：
 

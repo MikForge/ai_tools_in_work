@@ -127,8 +127,20 @@ Reason: 文档描述模块关系和分层约束。
 
 ```yaml
 name: knowledge-base-author
-description: Drafts or revises project knowledge-base Markdown content without writing files. Use when turning user material, code analysis, session notes, or loaded knowledge into a publishable knowledge-base draft.
+description: Use when user material, code analysis, session notes, or loaded knowledge should become a knowledge-base Markdown draft without publishing it.
 ```
+
+Writing Skills 参数：
+
+| 参数 | 值 |
+| --- | --- |
+| Skill 名称 | `knowledge-base-author` |
+| Skill 类型 | Technique |
+| 触发条件 | 用户要求把材料、代码分析、会话总结或已有知识整理成知识库正文草稿。 |
+| 要解决的具体问题 | 把写作和落盘分离，防止 agent 生成正文后直接决定路径、写文件或更新索引。 |
+| 反面案例 | 用户已经提供确认草稿并要求保存时，应进入 publisher；用户要求检查异常时，应进入 auditor。 |
+| 已知 rationalization | “既然草稿写好了我顺手保存”、“分类很明显我直接定路径”、“材料不足但我可以补一点常识”。 |
+| 代码示例场景 | 给一段代码分析，author 输出 Markdown 草稿、建议标题、建议摘要和可选分类建议，但不写文件。 |
 
 目标目录：
 
