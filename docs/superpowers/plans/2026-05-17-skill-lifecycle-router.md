@@ -22,6 +22,10 @@
     task-constraints.md                 # [CREATE] Task output review checklist
     test-constraints.md                 # [CREATE] Test report review checklist
     feedback-note-constraints.md        # [CREATE] Feedback note format spec
+  specs/                                # [CREATE] Design artifact directory
+  plans/                                # [CREATE] Plan artifact directory
+  test/                                 # [CREATE] Test report directory
+  notes/                                # [CREATE] Review + feedback note directory
   skill-lifecycle-design/
     SKILL.md                            # [CREATE] Design sub-skill
   skill-lifecycle-plan/
@@ -43,6 +47,10 @@
 **Files:**
 - Create: `.agents/skills/skill-lifecycle-router/`
 - Create: `.agents/skills/skill-lifecycle-router/constraints/`
+- Create: `.agents/skills/skill-lifecycle-router/specs/`
+- Create: `.agents/skills/skill-lifecycle-router/plans/`
+- Create: `.agents/skills/skill-lifecycle-router/test/`
+- Create: `.agents/skills/skill-lifecycle-router/notes/`
 - Create: `.agents/skills/skill-lifecycle-router/skill-lifecycle-design/`
 - Create: `.agents/skills/skill-lifecycle-router/skill-lifecycle-plan/`
 - Create: `.agents/skills/skill-lifecycle-router/skill-lifecycle-task/`
@@ -54,12 +62,20 @@
 
 ```bash
 mkdir -p .agents/skills/skill-lifecycle-router/constraints
+mkdir -p .agents/skills/skill-lifecycle-router/specs
+mkdir -p .agents/skills/skill-lifecycle-router/plans
+mkdir -p .agents/skills/skill-lifecycle-router/test
+mkdir -p .agents/skills/skill-lifecycle-router/notes
 mkdir -p .agents/skills/skill-lifecycle-router/skill-lifecycle-design
 mkdir -p .agents/skills/skill-lifecycle-router/skill-lifecycle-plan
 mkdir -p .agents/skills/skill-lifecycle-router/skill-lifecycle-task
 mkdir -p .agents/skills/skill-lifecycle-router/skill-lifecycle-test
 mkdir -p .agents/skills/skill-lifecycle-router/skill-lifecycle-review
 mkdir -p .agents/skills/skill-lifecycle-router/skill-lifecycle-feedback
+touch .agents/skills/skill-lifecycle-router/specs/.gitkeep
+touch .agents/skills/skill-lifecycle-router/plans/.gitkeep
+touch .agents/skills/skill-lifecycle-router/test/.gitkeep
+touch .agents/skills/skill-lifecycle-router/notes/.gitkeep
 ```
 
 - [ ] **Step 2: Verify structure**
@@ -72,12 +88,16 @@ Expected output:
 ```
 .agents/skills/skill-lifecycle-router
 .agents/skills/skill-lifecycle-router/constraints
+.agents/skills/skill-lifecycle-router/notes
+.agents/skills/skill-lifecycle-router/plans
 .agents/skills/skill-lifecycle-router/skill-lifecycle-design
 .agents/skills/skill-lifecycle-router/skill-lifecycle-feedback
 .agents/skills/skill-lifecycle-router/skill-lifecycle-plan
 .agents/skills/skill-lifecycle-router/skill-lifecycle-review
 .agents/skills/skill-lifecycle-router/skill-lifecycle-task
 .agents/skills/skill-lifecycle-router/skill-lifecycle-test
+.agents/skills/skill-lifecycle-router/specs
+.agents/skills/skill-lifecycle-router/test
 ```
 
 - [ ] **Step 3: Commit**
@@ -268,11 +288,11 @@ Produce a design document that defines what to build, its boundaries, and scope.
 
 ## Process
 
-1. Read the design spec at `docs/superpowers/specs/2026-05-17-skill-lifecycle-router-design.md` if designing the lifecycle router itself, or relevant references for other skills
+1. Read relevant specifications or references to understand the problem domain and existing patterns
 2. Clarify the problem: what problem does this skill solve? What happens without it?
 3. Define scope: what is IN and what is OUT. List non-goals explicitly.
 4. Design the approach: architecture, components, data flow, error handling
-5. Write the design doc to `docs/superpowers/specs/<skill-name>/<skill-name>-design.md` or equivalent
+5. Write the design doc to `skill-lifecycle-router/specs/<skill-name>-design.md`
 6. Run self-check before declaring completion
 
 ## Self-Check
@@ -345,7 +365,7 @@ Design doc must exist. Router checks this before forwarding. If missing, return 
 2. Map each design component to implementation tasks
 3. Each task must be independently executable (one action, 2-5 minutes)
 4. Include exact file paths, complete code, exact commands with expected output
-5. Write the plan doc to `docs/superpowers/plans/<skill-name>/<skill-name>-plan.md` or equivalent
+5. Write the plan doc to `skill-lifecycle-router/plans/<skill-name>-plan.md`
 6. Run self-check before declaring completion
 
 ## Self-Check
