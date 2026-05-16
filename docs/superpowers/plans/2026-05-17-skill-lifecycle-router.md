@@ -292,7 +292,7 @@ Produce a design document that defines what to build, its boundaries, and scope.
 2. Clarify the problem: what problem does this skill solve? What happens without it?
 3. Define scope: what is IN and what is OUT. List non-goals explicitly.
 4. Design the approach: architecture, components, data flow, error handling
-5. Write the design doc to `skill-lifecycle-router/specs/<skill-name>-design.md`
+5. Write the design doc to `.agents/skills/skill-lifecycle-router/specs/<skill-name>-design.md`
 6. Run self-check before declaring completion
 
 ## Self-Check
@@ -365,7 +365,7 @@ Design doc must exist. Router checks this before forwarding. If missing, return 
 2. Map each design component to implementation tasks
 3. Each task must be independently executable (one action, 2-5 minutes)
 4. Include exact file paths, complete code, exact commands with expected output
-5. Write the plan doc to `skill-lifecycle-router/plans/<skill-name>-plan.md`
+5. Write the plan doc to `.agents/skills/skill-lifecycle-router/plans/<skill-name>-plan.md`
 6. Run self-check before declaring completion
 
 ## Self-Check
@@ -498,7 +498,7 @@ Task output must exist. Router checks this before forwarding. If missing, return
    - **Completeness:** All referenced files exist, no broken paths, all required sections present
    - **Structure:** Follows project skill conventions, directory layout matches patterns
 3. For each check, record: pass/fail, file:line if failed, expected vs actual
-4. Write test report to `skill-lifecycle-router/test/<skill-name>-test-report.md`
+4. Write test report to `.agents/skills/skill-lifecycle-router/test/<skill-name>-test-report.md`
 5. Run self-check before declaring completion
 
 ## Counter-Check (Test Effectiveness)
@@ -582,7 +582,7 @@ Target artifact must exist. User specifies which stage's artifact to review. Rou
    - 文件位置: path:line
    - 问题描述: what's wrong and why it matters
 6. Include mode consistency check: does this artifact follow established project patterns? Any new structural patterns introduced?
-7. Write review report to `skill-lifecycle-router/notes/<skill-name>-review.md`
+7. Write review report to `.agents/skills/skill-lifecycle-router/notes/<skill-name>-review.md`
 
 ## Review Report Format
 
@@ -613,10 +613,10 @@ Target artifact must exist. User specifies which stage's artifact to review. Rou
 
 ## Self-Check
 
-- [ ] Review report exists
-- [ ] Each finding has severity and target stage
-- [ ] Mode consistency check included
-- [ ] Assessment gives clear verdict
+- [ ] 审查报告存在
+- [ ] 每条发现标注了严重度和回流目标阶段
+- [ ] 包含模式一致性检查结论
+- [ ] 给出明确的整体评估
 
 ## Output
 
@@ -624,10 +624,10 @@ Review report ends with the self-check declaration:
 
 ```markdown
 ## Self-Check
-- [x] Review report exists
-- [x] Each finding has severity and target stage
-- [x] Mode consistency check included
-- [x] Assessment verdict clear
+- [x] 审查报告存在
+- [x] 每条发现标注了严重度和回流目标阶段
+- [x] 包含模式一致性检查结论
+- [x] 整体评估明确
 ```
 ```
 
@@ -674,13 +674,13 @@ Record issues found during review or test, annotate severity and target reflux s
 2. Router asks which stage the issue targets (design / plan / task / test)
 3. User describes the issue
 4. Router assigns severity (Critical / Important / Minor) based on user description
-5. Write feedback note to `skill-lifecycle-router/notes/<skill-name>-feedback.md`
+5. Write feedback note to `.agents/skills/skill-lifecycle-router/notes/<skill-name>-feedback.md`
 
 ### Auto-Triggered
 1. Router passes review/test report to feedback sub-skill
 2. Extract each issue from the report's Issues section
 3. Format each issue per `constraints/feedback-note-constraints.md`
-4. Append (not overwrite) to `skill-lifecycle-router/notes/<skill-name>-feedback.md`
+4. Append (not overwrite) to `.agents/skills/skill-lifecycle-router/notes/<skill-name>-feedback.md`
 
 ## Output Format
 
@@ -719,9 +719,9 @@ Feedback note ends with the self-check declaration:
 
 ```markdown
 ## Self-Check
-- [x] Each issue has severity
-- [x] Each issue has target stage
-- [x] Source identified
+- [x] 每条问题标注了严重度
+- [x] 每条问题标注了回流目标阶段
+- [x] 来源已标注
 ```
 ```
 
