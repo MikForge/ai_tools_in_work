@@ -225,7 +225,7 @@ Review each test report against these criteria. Categorize findings as Critical 
 
 - [ ] **Step 5: Write feedback-note-constraints.md**
 
-```markdown
+````markdown
 # Feedback Note Format
 
 Every feedback note follows this structure. A note may contain multiple issues.
@@ -236,22 +236,22 @@ Every feedback note follows this structure. A note may contain multiple issues.
 ## Issues
 
 ### <Issue Title>
-- **Severity:** Critical | Important | Minor
-- **Source:** review | test | self-check
-- **Target Stage:** design | plan | task | test
-- **Description:** <what was found and why it matters>
-- **File:** <path:line if applicable>
+- **严重度:** Critical | Important | Minor
+- **来源:** review | test | self-check | user
+- **回流目标阶段:** design | plan | task | test
+- **描述:** <what was found and why it matters>
+- **文件:** <path:line if applicable>
 
 ### <Issue Title>
 ...
 ```
 
 ## Format Rules
-- Each issue MUST have Severity, Source, Target Stage, and Description
-- Severity follows review criteria: Critical = broken/bug/security, Important = missing/wrong/poor, Minor = style/nitpick
-- Target Stage determines where the feedback routes for repair
+- Each issue MUST have 严重度, 来源, 回流目标阶段, and 描述
+- 严重度 follows review criteria: Critical = 阻断/安全, Important = 缺失/错误/不足, Minor = 风格/优化
+- 回流目标阶段 determines where the feedback routes for repair
 - Issues are appended (not overwritten) when feedback is triggered multiple times for the same skill
-```
+````
 
 - [ ] **Step 6: Commit**
 
@@ -578,9 +578,9 @@ Target artifact must exist. User specifies which stage's artifact to review. Rou
 4. For each checklist item, determine: pass or issue found
 5. For each issue, record:
    - Severity: Critical (broken/bug/security) / Important (missing/wrong/poor) / Minor (style/nitpick)
-   - Target stage for回流: design / plan / task / test
-   - File:line reference
-   - What's wrong and why it matters
+   - 回流目标阶段: design / plan / task / test
+   - 文件位置: path:line
+   - 问题描述: what's wrong and why it matters
 6. Include mode consistency check: does this artifact follow established project patterns? Any new structural patterns introduced?
 7. Write review report to `skill-lifecycle-router/notes/<skill-name>-review.md`
 
@@ -598,11 +598,11 @@ Target artifact must exist. User specifies which stage's artifact to review. Rou
 ## Issues
 
 ### <Issue Title>
-- **Severity:** Critical | Important | Minor
-- **Target Stage:** design | plan | task | test
-- **File:** <path:line>
-- **What:** <description>
-- **Why:** <impact>
+- **严重度:** Critical | Important | Minor
+- **回流目标阶段:** design | plan | task | test
+- **文件:** <path:line>
+- **问题:** <description>
+- **影响:** <impact>
 
 ## Mode Consistency
 [Pattern consistency check result. Any new structural patterns? Do they align with project conventions?]
@@ -692,26 +692,26 @@ Follow `constraints/feedback-note-constraints.md`:
 ## Issues
 
 ### <Issue Title>
-- **Severity:** Critical | Important | Minor
-- **Source:** review | test | self-check | user
-- **Target Stage:** design | plan | task | test
-- **Description:** <what was found and why it matters>
-- **File:** <path:line if applicable>
+- **严重度:** Critical | Important | Minor
+- **来源:** review | test | self-check | user
+- **回流目标阶段:** design | plan | task | test
+- **描述:** <what was found and why it matters>
+- **文件:** <path:line if applicable>
 ```
 
 ## Router Handoff
 
 After feedback note is written, router presents:
 - Number of issues by severity
-- Which stages they target for回流
-- "Go back to <stage> to fix, or accept and continue?"
+- 问题回流到哪个阶段
+- "回到 <stage> 修，还是接受继续？"
 
 ## Self-Check
 
 - [ ] Feedback note exists
-- [ ] Each issue has severity
-- [ ] Each issue has target stage for reflux
-- [ ] Source is identified for each issue
+- [ ] 每条问题标注了严重度
+- [ ] 每条问题标注了回流目标阶段
+- [ ] 来源已标注
 
 ## Output
 
@@ -1001,12 +1001,16 @@ Expected list:
 .agents/skills/skill-lifecycle-router/constraints/plan-constraints.md
 .agents/skills/skill-lifecycle-router/constraints/task-constraints.md
 .agents/skills/skill-lifecycle-router/constraints/test-constraints.md
+.agents/skills/skill-lifecycle-router/notes/.gitkeep
+.agents/skills/skill-lifecycle-router/plans/.gitkeep
 .agents/skills/skill-lifecycle-router/skill-lifecycle-design/SKILL.md
 .agents/skills/skill-lifecycle-router/skill-lifecycle-feedback/SKILL.md
 .agents/skills/skill-lifecycle-router/skill-lifecycle-plan/SKILL.md
 .agents/skills/skill-lifecycle-router/skill-lifecycle-review/SKILL.md
 .agents/skills/skill-lifecycle-router/skill-lifecycle-task/SKILL.md
 .agents/skills/skill-lifecycle-router/skill-lifecycle-test/SKILL.md
+.agents/skills/skill-lifecycle-router/specs/.gitkeep
+.agents/skills/skill-lifecycle-router/test/.gitkeep
 ```
 
 - [ ] **Step 2: Verify all SKILL.md files have valid YAML frontmatter**
