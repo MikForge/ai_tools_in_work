@@ -4,7 +4,7 @@
 
 ## Documents
 
-- [Writing Skills 设计与流程](design-writing-skills-flow.md)
+- [Writing Skills 设计与流程](reference-writing-skills-overview.md)
 - [brainstorming — 头脑风暴设计](reference-brainstorming-overview.md)
 - [dispatching-parallel-agents — 并行子代理调度](reference-dispatching-parallel-agents-overview.md)
 - [executing-plans — 执行实施计划](reference-executing-plans-overview.md)
