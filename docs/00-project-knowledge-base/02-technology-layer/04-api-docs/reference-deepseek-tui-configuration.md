@@ -37,6 +37,7 @@ DeepSeek TUI 是 DeepSeek V4 的终端编码 Agent，配置文件位于 `~/.deep
 | `notes_path` | 仓库内笔记 |
 | `max_subagents` | 并发上限 (1..20) |
 | `allow_shell` | 控制 shell 工具访问 |
+| `instructions` | 清空/替换用户级 instructions（`[]` 清空） |
 
 来源: [CONFIGURATION.md](https://raw.githubusercontent.com/Hmbown/DeepSeek-TUI/main/docs/CONFIGURATION.md)
 
@@ -103,7 +104,7 @@ DeepSeek TUI 的 hooks 系统在工具执行前后、响应生命周期、审批
 |------|------|
 | `StdoutHookSink` | JSON 事件打印到 stdout |
 | `JsonlHookSink` | JSONL 追加写入文件（含时间戳） |
-| Webhook | 发送到 HTTP 端点 |
+| `WebhookHookSink` | HTTP POST JSON 到 URL，3 次重试 (200ms 指数退避) |
 
 多 sink 通过 `HookDispatcher` 分发，单个 sink 故障不影响其他。
 
@@ -115,6 +116,9 @@ DeepSeek TUI 的 hooks 系统在工具执行前后、响应生命周期、审批
 event = "tool_call_before"
 command = "echo 'Running tool: $TOOL_NAME'"
 ```
+
+> **注意**：ARCHITECTURE.md 快速入门使用 `[[hooks]]`，CONFIGURATION.md 使用 `[[hooks.hooks]]`。
+> 后者更完整——`[hooks]` 段还有 `enabled` 等全局控制字段。两种写法均有效。
 
 ### TUI 内交互
 
@@ -170,6 +174,8 @@ Turn 开始
   → 4. 工具执行
   → 6. Post-execution hooks run  
   → 8. LSP post-edit hook (v0.8.6): edit_file/apply_patch/write_file 后收集诊断
+  → 9. Diagnostics flush (v0.8.6): 下次 API 请求前 flush_pending_lsp_diagnostics() 注入诊断
+  → 10. 结果返回 agent loop
 Turn 结束
 ```
 
