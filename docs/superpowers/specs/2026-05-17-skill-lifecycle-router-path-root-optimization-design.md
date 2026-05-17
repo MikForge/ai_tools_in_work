@@ -24,6 +24,12 @@ Make path ownership explicit and stable across the root router and every interna
 
 The optimized design replaces `THIS_SKILL_DIR` with `ROUTER_SKILL_DIR`, then removes ambiguous `../docs/...` references from sub-skills. Every path must resolve from a named root.
 
+## Relationship to Parent Spec
+
+This optimization supersedes the parent spec's artifact path examples that place lifecycle reports under `skill-lifecycle-router/specs`, `skill-lifecycle-router/plans`, `skill-lifecycle-router/test`, and `skill-lifecycle-router/notes`.
+
+After this optimization, lifecycle reports live under `TARGET_WORKSPACE/docs/...`. Router-owned constraints and internal sub-skill instructions remain under `ROUTER_SKILL_DIR`.
+
 ## Core Decision
 
 Use `ROUTER_SKILL_DIR` as the bound absolute path to the root router package directory:
@@ -107,6 +113,14 @@ Before Step 1 of the router workflow, the router binds:
 2. `TARGET_WORKSPACE`: absolute workspace where lifecycle artifacts should be read and written.
 3. `TARGET_SKILL_DIR`: absolute directory for the skill being created or modified, once the target skill is known.
 
+`TARGET_WORKSPACE` binding rules:
+
+- If the user explicitly names a workspace, bind `TARGET_WORKSPACE` to that absolute path.
+- Otherwise bind `TARGET_WORKSPACE` to the current target repository root.
+- If the current working directory is inside a repository, use that repository root instead of the nested current directory.
+- If multiple plausible workspaces exist, ask one question before entering a stage.
+- Do not bind `TARGET_WORKSPACE` to `ROUTER_SKILL_DIR` unless the router package itself is the target workspace.
+
 The router passes these bindings to every internal sub-skill as execution context. Sub-skills inherit the bindings and must not rebind `ROUTER_SKILL_DIR`.
 
 ## Sub-Skill Contract
@@ -186,6 +200,26 @@ TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md
 
 Also specify that the design doc is read from `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md`.
 
+### Task Sub-Skill
+
+Add the shared Path Contract.
+
+Specify that the plan doc is read from:
+
+```text
+TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md
+```
+
+Specify that target skill outputs are written under `TARGET_SKILL_DIR`, including:
+
+```text
+TARGET_SKILL_DIR/SKILL.md
+TARGET_SKILL_DIR/zh-CN.md
+TARGET_SKILL_DIR/scripts/*
+TARGET_SKILL_DIR/templates/*
+TARGET_SKILL_DIR/references/*
+```
+
 ### Test Sub-Skill
 
 Replace:
@@ -253,7 +287,7 @@ The internal sub-skills currently do not have `zh-CN.md` files. This optimizatio
 After implementation, run text checks:
 
 ```bash
-rg -n "THIS_SKILL_DIR|\\.\\./docs|\\.agents/skills/skill-lifecycle-router" .agents/skills/00-skill-lifecycle-router
+! rg -n "THIS_SKILL_DIR|\\.\\./docs|\\.agents/skills/skill-lifecycle-router" .agents/skills/00-skill-lifecycle-router
 ```
 
 Expected result:
@@ -261,6 +295,7 @@ Expected result:
 - No `THIS_SKILL_DIR`.
 - No `../docs`.
 - No stale `.agents/skills/skill-lifecycle-router` path.
+- The command exits successfully because `! rg` inverts `rg`'s no-match exit code.
 
 Run positive checks:
 
@@ -305,6 +340,8 @@ Manual review checklist:
 - [x] Scope is limited to path root optimization.
 - [x] Path ownership is explicit for router-owned files, lifecycle artifacts, and target skill artifacts.
 - [x] Required changes identify every affected sub-skill category.
+- [x] Parent spec artifact path conflict is explicitly superseded.
+- [x] `TARGET_WORKSPACE` binding rules are defined.
 - [x] Validation strategy includes negative and positive checks.
-- [x] No "TBD" or "TODO" placeholders remain.
+- [x] No placeholder markers remain.
 - [x] No contradictory assertions.
