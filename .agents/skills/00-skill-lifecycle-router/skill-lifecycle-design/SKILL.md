@@ -1,54 +1,54 @@
 ---
 name: skill-lifecycle-design
-description: Lifecycle sub-skill — produce design doc for a skill. Internal, invoked by skill-lifecycle-router.
+description: 生命周期子 skill —— 为 skill 创建设计文档。内部使用，由 skill-lifecycle-router 调用。
 disable-model-invocation: true
 ---
 
-# Skill Lifecycle — Design
+# Skill 生命周期 — 设计
 
-## Overview
+## 概述
 
-Produce a design document that defines what to build, its boundaries, and scope. The design doc is the authoritative reference for all downstream stages (plan, task, test, review).
+产出一份设计文档，定义要构建什么、其边界和范围。设计文档是所有下游阶段（plan、task、test、review）的权威参考。
 
-**Core principle:** Determine whether to build, define boundaries and scope, then produce the design document.
+**核心原则:** 决定是否构建，定义边界和范围，然后产出设计文档。
 
-## Path Contract
+## 路径约定
 
-This sub-skill is executed by the root router. It inherits:
+此子 skill 由根路由器执行。它继承：
 
-- `ROUTER_SKILL_DIR`: absolute path to the root `skill-lifecycle-router` package directory.
-- `TARGET_WORKSPACE`: absolute path to the workspace where lifecycle artifacts live.
-- `TARGET_SKILL_DIR`: absolute path to the skill being created or modified, when applicable.
+- `ROUTER_SKILL_DIR`：根 `skill-lifecycle-router` 包目录的绝对路径。
+- `TARGET_WORKSPACE`：生命周期产物所在工作区的绝对路径。
+- `TARGET_SKILL_DIR`：正在创建或修改的 skill 所在目录的绝对路径（如适用）。
 
-Do not resolve router-owned files from the current working directory. Do not use parent-relative docs paths for router-owned files or lifecycle artifacts.
+不要从当前工作目录解析路由器拥有的文件。不要对路由器拥有的文件或生命周期产物使用父级相对 docs 路径。
 
-## Process
+## 流程
 
-1. Read relevant specifications or references to understand the problem domain and existing patterns
-2. Clarify the problem: what problem does this skill solve? What happens without it?
-3. Define scope: what is IN and what is OUT. List non-goals explicitly.
-4. Design the approach: architecture, components, data flow, error handling
-5. Write the design doc to `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md`
-6. Run self-check before declaring completion
+1. 阅读相关规范或参考资料以理解问题域和已有模式
+2. 澄清问题：这个 skill 解决什么问题？没有它会发生什么？
+3. 定义范围：哪些在范围内，哪些在范围外。明确列出非目标。
+4. 设计方案：架构、组件、数据流、错误处理
+5. 将设计文档写入 `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md`
+6. 在宣告完成之前运行自检
 
-## Self-Check
+## 自检
 
-Before declaring done, verify:
-- [ ] Design document exists at `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md`
-- [ ] No "TBD" or "TODO" placeholders
-- [ ] No contradictory assertions (saying X in one section, not-X in another)
+在宣告完成之前，验证：
+- [ ] 设计文档存在于 `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md`
+- [ ] 无 "TBD" 或 "TODO" 占位符
+- [ ] 无相互矛盾的断言（在一个章节说 X，在另一个章节说非 X）
 
-## Output
+## 输出
 
-Append the self-check declaration at the end of the design doc:
+在设计文档末尾追加自检声明：
 
 ```markdown
-## Self-Check
-- [x] Design document exists
-- [x] No "TBD" / "TODO" placeholders
-- [x] No contradictory assertions
+## 自检
+- [x] 设计文档存在
+- [x] 无 "TBD" / "TODO" 占位符
+- [x] 无相互矛盾的断言
 ```
 
-## Reference
+## 参考
 
-Draw methodology from `brainstorming` and `writing-skills` skills — but produce output in this lifecycle's format, not their format.
+从 `brainstorming` 和 `writing-skills` skill 中汲取方法论 —— 但以本生命周期的格式产出输出，而非它们的格式。

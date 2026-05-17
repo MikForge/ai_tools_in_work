@@ -1,57 +1,57 @@
 ---
 name: skill-lifecycle-plan
-description: Lifecycle sub-skill — produce implementation plan from design doc. Internal, invoked by skill-lifecycle-router.
+description: 生命周期子 skill —— 从设计文档生成实现计划。内部使用，由 skill-lifecycle-router 调用。
 disable-model-invocation: true
 ---
 
-# Skill Lifecycle — Plan
+# Skill 生命周期 — 计划
 
-## Overview
+## 概述
 
-Convert a design document into a concrete implementation plan with independently executable steps. The plan doc drives the task stage.
+将设计文档转换为包含可独立执行步骤的具体实现计划。计划文档驱动 task 阶段。
 
-**Core principle:** Design → implementation plan, decomposed into independently executable steps.
+**核心原则:** 设计 → 实现计划，分解为可独立执行的步骤。
 
-## Path Contract
+## 路径约定
 
-This sub-skill is executed by the root router. It inherits:
+此子 skill 由根路由器执行。它继承：
 
-- `ROUTER_SKILL_DIR`: absolute path to the root `skill-lifecycle-router` package directory.
-- `TARGET_WORKSPACE`: absolute path to the workspace where lifecycle artifacts live.
-- `TARGET_SKILL_DIR`: absolute path to the skill being created or modified, when applicable.
+- `ROUTER_SKILL_DIR`：根 `skill-lifecycle-router` 包目录的绝对路径。
+- `TARGET_WORKSPACE`：生命周期产物所在工作区的绝对路径。
+- `TARGET_SKILL_DIR`：正在创建或修改的 skill 所在目录的绝对路径（如适用）。
 
-Do not resolve router-owned files from the current working directory. Do not use parent-relative docs paths for router-owned files or lifecycle artifacts.
+不要从当前工作目录解析路由器拥有的文件。不要对路由器拥有的文件或生命周期产物使用父级相对 docs 路径。
 
-## Entry Condition
+## 入口条件
 
-Design doc must exist. Router checks this before forwarding. If missing, return to design stage.
+设计文档必须存在。路由器在转发前检查此项。若缺失，返回 design 阶段。
 
-## Process
+## 流程
 
-1. Read the design doc from `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md`
-2. Map each design component to implementation tasks
-3. Each task must be independently executable (one action, 2-5 minutes)
-4. Include exact file paths, complete code, exact commands with expected output
-5. Write the plan doc to `TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md`
-6. Run self-check before declaring completion
+1. 从 `TARGET_WORKSPACE/docs/specs/<skill-name>-design.md` 读取设计文档
+2. 将每个设计组件映射为实现任务
+3. 每个任务必须可独立执行（一个操作，2-5 分钟）
+4. 包含精确的文件路径、完整代码、精确的命令及预期输出
+5. 将计划文档写入 `TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md`
+6. 在宣告完成之前运行自检
 
-## Self-Check
+## 自检
 
-- [ ] Plan file exists at `TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md`
-- [ ] Each step is independently verifiable — no forward references, no "similar to Task N"
-- [ ] No "TBD" or "TODO" placeholders
+- [ ] 计划文件存在于 `TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md`
+- [ ] 每个步骤可独立验证 —— 无前向引用，无"类似任务 N"的描述
+- [ ] 无 "TBD" 或 "TODO" 占位符
 
-## Output
+## 输出
 
-Append the self-check declaration at the end of the plan doc:
+在计划文档末尾追加自检声明：
 
 ```markdown
-## Self-Check
-- [x] Plan file exists
-- [x] Each step independently verifiable
-- [x] No "TBD" / "TODO" placeholders
+## 自检
+- [x] 计划文件存在
+- [x] 每个步骤可独立验证
+- [x] 无 "TBD" / "TODO" 占位符
 ```
 
-## Reference
+## 参考
 
-Draw methodology from `writing-plans` skill — task granularity, no placeholders, exact paths.
+从 `writing-plans` skill 中汲取方法论 —— 任务粒度、无占位符、精确路径。

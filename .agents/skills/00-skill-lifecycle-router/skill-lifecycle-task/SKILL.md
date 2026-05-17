@@ -1,56 +1,56 @@
 ---
 name: skill-lifecycle-task
-description: Lifecycle sub-skill — execute plan steps and produce skill artifacts. Internal, invoked by skill-lifecycle-router.
+description: 生命周期子 skill —— 执行计划步骤并生成 skill 产物。内部使用，由 skill-lifecycle-router 调用。
 disable-model-invocation: true
 ---
 
-# Skill Lifecycle — Task
+# Skill 生命周期 — 任务
 
-## Overview
+## 概述
 
-Execute the implementation plan step by step, producing the target skill's SKILL.md and related files. Each plan step maps to a concrete output.
+逐步执行实现计划，生成目标 skill 的 SKILL.md 及相关文件。每个计划步骤对应一个具体输出。
 
-**Core principle:** Execute the plan, produce the skill artifacts.
+**核心原则:** 执行计划，产出 skill 产物。
 
-## Path Contract
+## 路径约定
 
-This sub-skill is executed by the root router. It inherits:
+此子 skill 由根路由器执行。它继承：
 
-- `ROUTER_SKILL_DIR`: absolute path to the root `skill-lifecycle-router` package directory.
-- `TARGET_WORKSPACE`: absolute path to the workspace where lifecycle artifacts live.
-- `TARGET_SKILL_DIR`: absolute path to the skill being created or modified, when applicable.
+- `ROUTER_SKILL_DIR`：根 `skill-lifecycle-router` 包目录的绝对路径。
+- `TARGET_WORKSPACE`：生命周期产物所在工作区的绝对路径。
+- `TARGET_SKILL_DIR`：正在创建或修改的 skill 所在目录的绝对路径（如适用）。
 
-Do not resolve router-owned files from the current working directory. Do not use parent-relative docs paths for router-owned files or lifecycle artifacts.
+不要从当前工作目录解析路由器拥有的文件。不要对路由器拥有的文件或生命周期产物使用父级相对 docs 路径。
 
-## Entry Condition
+## 入口条件
 
-Plan doc must exist. Router checks this before forwarding. If missing, return to plan stage.
+计划文档必须存在。路由器在转发前检查此项。若缺失，返回 plan 阶段。
 
-## Process
+## 流程
 
-1. Read the plan doc from `TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md`
-2. Execute each plan step in order
-3. Produce artifacts under `TARGET_SKILL_DIR`: SKILL.md, zh-CN.md, scripts, templates as defined by the plan
-4. Commit after each completed step (frequent commits)
-5. Run self-check before declaring completion
+1. 从 `TARGET_WORKSPACE/docs/plans/<skill-name>-plan.md` 读取计划文档
+2. 按顺序执行每个计划步骤
+3. 在 `TARGET_SKILL_DIR` 下生成产物：SKILL.md、zh-CN.md、脚本、模板（按计划定义）
+4. 每完成一个步骤后提交（频繁提交）
+5. 在宣告完成之前运行自检
 
-## Self-Check
+## 自检
 
-- [ ] Every plan step has corresponding output
-- [ ] No skipped or partially completed steps
-- [ ] All produced files exist under `TARGET_SKILL_DIR` at their specified paths
+- [ ] 每个计划步骤都有对应输出
+- [ ] 无跳过或部分完成的步骤
+- [ ] 所有生成的文件在其指定路径下存在于 `TARGET_SKILL_DIR`
 
-## Output
+## 输出
 
-Append the self-check declaration at the end of the last produced artifact:
+在最后生成的产物末尾追加自检声明：
 
 ```markdown
-## Self-Check
-- [x] All plan steps executed
-- [x] All files produced at specified paths
-- [x] No skipped steps
+## 自检
+- [x] 所有计划步骤已执行
+- [x] 所有文件已在指定路径生成
+- [x] 无跳过步骤
 ```
 
-## Reference
+## 参考
 
-Draw methodology from `executing-plans` skill — step-by-step execution, frequent commits.
+从 `executing-plans` skill 中汲取方法论 —— 逐步执行、频繁提交。

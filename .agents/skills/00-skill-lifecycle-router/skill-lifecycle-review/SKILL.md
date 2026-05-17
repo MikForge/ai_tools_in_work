@@ -1,89 +1,89 @@
 ---
 name: skill-lifecycle-review
-description: Lifecycle sub-skill — structured artifact review with mode consistency check. Internal, invoked by skill-lifecycle-router.
+description: 生命周期子 skill —— 结构化产物审查，包含模式一致性检查。内部使用，由 skill-lifecycle-router 调用。
 disable-model-invocation: true
 ---
 
-# Skill Lifecycle — Review
+# Skill 生命周期 — 审查
 
-## Overview
+## 概述
 
-Structured review of lifecycle artifacts (design doc, plan doc, task output, test report). Reads the appropriate constraint checklist from `ROUTER_SKILL_DIR/docs/constraints/` based on artifact type. Each finding is categorized by severity and routed back to the correct stage via the feedback loop.
+对生命周期产物（设计文档、计划文档、task 输出、测试报告）进行结构化审查。根据产物类型从 `ROUTER_SKILL_DIR/docs/constraints/` 读取对应的约束检查清单。每个发现按严重度分类，并通过反馈循环路由回对应阶段。
 
-**Core principle:** Review the artifact, not the author. Check correctness AND pattern consistency. Issues flow back through feedback.
+**核心原则:** 审查产物，而非作者。检查正确性和模式一致性。问题通过反馈回流。
 
-## Path Contract
+## 路径约定
 
-This sub-skill is executed by the root router. It inherits:
+此子 skill 由根路由器执行。它继承：
 
-- `ROUTER_SKILL_DIR`: absolute path to the root `skill-lifecycle-router` package directory.
-- `TARGET_WORKSPACE`: absolute path to the workspace where lifecycle artifacts live.
-- `TARGET_SKILL_DIR`: absolute path to the skill being created or modified, when applicable.
+- `ROUTER_SKILL_DIR`：根 `skill-lifecycle-router` 包目录的绝对路径。
+- `TARGET_WORKSPACE`：生命周期产物所在工作区的绝对路径。
+- `TARGET_SKILL_DIR`：正在创建或修改的 skill 所在目录的绝对路径（如适用）。
 
-Do not resolve router-owned files from the current working directory. Do not use parent-relative docs paths for router-owned files or lifecycle artifacts.
+不要从当前工作目录解析路由器拥有的文件。不要对路由器拥有的文件或生命周期产物使用父级相对 docs 路径。
 
-## Entry Condition
+## 入口条件
 
-Target artifact must exist. User specifies which stage's artifact to review. Router checks file existence before forwarding.
+目标产物必须存在。用户指定要审查哪个阶段的产物。路由器在转发前检查文件是否存在。
 
-## Process
+## 流程
 
-1. Ask user which artifact to review (design / plan / task / test)
-2. Read the corresponding constraint file from `ROUTER_SKILL_DIR/docs/constraints/`:
-   - `design-constraints.md` for design doc
-   - `plan-constraints.md` for plan doc
-   - `task-constraints.md` for task output
-   - `test-constraints.md` for test report
-3. Read the target artifact
-4. For each checklist item, determine: pass or issue found
-5. For each issue, record:
-   - Severity: Critical (broken/bug/security) / Important (missing/wrong/poor) / Minor (style/nitpick)
-   - 回流目标阶段: design / plan / task / test
-   - 文件位置: path:line
-   - 问题描述: what's wrong and why it matters
-6. Include mode consistency check: does this artifact follow established project patterns? Any new structural patterns introduced?
-7. Write review report to `TARGET_WORKSPACE/docs/notes/<skill-name>-review.md`
+1. 询问用户要审查哪个产物（design / plan / task / test）
+2. 从 `ROUTER_SKILL_DIR/docs/constraints/` 读取对应的约束文件：
+   - `design-constraints.md` 用于设计文档
+   - `plan-constraints.md` 用于计划文档
+   - `task-constraints.md` 用于 task 输出
+   - `test-constraints.md` 用于测试报告
+3. 读取目标产物
+4. 对每个检查项，判定：通过 或 发现问题
+5. 对每个问题，记录：
+   - 严重度：Critical（损坏/bug/安全） / Important（缺失/错误/较差） / Minor（风格/细节）
+   - 回流目标阶段：design / plan / task / test
+   - 文件位置：path:line
+   - 问题描述：哪里有问题以及为什么重要
+6. 包含模式一致性检查：此产物是否遵循项目既定模式？是否引入了新的结构模式？
+7. 将审查报告写入 `TARGET_WORKSPACE/docs/notes/<skill-name>-review.md`
 
-## Review Report Format
+## 审查报告格式
 
 ```markdown
-# Review Report: <skill-name>
+# 审查报告: <skill-name>
 
-**Artifact reviewed:** <path>
-**Constraint checklist:** ROUTER_SKILL_DIR/docs/constraints/<artifact-type>-constraints.md
+**审查的产物:** <path>
+**约束检查清单:** ROUTER_SKILL_DIR/docs/constraints/<artifact-type>-constraints.md
 
-## Strengths
-[What's well done? Be specific.]
+## 优点
+[哪些做得好？具体说明。]
 
-## Issues
+## 问题
 
-### <Issue Title>
+### <问题标题>
 - **严重度:** Critical | Important | Minor
 - **回流目标阶段:** design | plan | task | test
 - **文件:** <path:line>
-- **问题:** <description>
-- **影响:** <impact>
+- **问题:** <描述>
+- **影响:** <影响>
 
-## Mode Consistency
-[Pattern consistency check result. Any new structural patterns? Do they align with project conventions?]
+## 模式一致性
+[模式一致性检查结果。是否有新的结构模式？它们是否符合项目约定？]
 
-## Assessment
-[Overall readiness. If zero Critical + zero Important → automatic pass.]
+## 评估
+[整体就绪程度。若零 Critical + 零 Important → 自动通过。]
 ```
 
-## Self-Check
+## 自检
 
 - [ ] 审查报告存在
 - [ ] 每条发现标注了严重度和回流目标阶段
 - [ ] 包含模式一致性检查结论
 - [ ] 给出明确的整体评估
 
-## Output
+## 输出
 
-Review report ends with the self-check declaration:
+审查报告以自检声明结尾：
 
 ```markdown
-## Self-Check
+## 自检
 - [x] 审查报告存在
 - [x] 每条发现标注了严重度和回流目标阶段
 - [x] 包含模式一致性检查结论

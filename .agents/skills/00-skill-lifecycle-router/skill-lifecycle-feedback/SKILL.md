@@ -1,84 +1,84 @@
 ---
 name: skill-lifecycle-feedback
-description: Lifecycle sub-skill — record issues with severity and reflux routing. Internal, invoked by skill-lifecycle-router (user-selectable or auto-triggered by review/test).
+description: 生命周期子 skill —— 记录问题及其严重度和回流路由。内部使用，由 skill-lifecycle-router 调用（用户可选或由 review/test 自动触发）。
 disable-model-invocation: true
 ---
 
-# Skill Lifecycle — Feedback
+# Skill 生命周期 — 反馈
 
-## Overview
+## 概述
 
-Record issues found during review or test, annotate severity and target reflux stage, and trigger repair loops. Two entry paths: user selecting "feedback" stage, or router auto-triggering after review/test finds issues.
+记录 review 或 test 阶段发现的问题，标注严重度和回流目标阶段，并触发修复循环。两种入口路径：用户选择 "feedback" 阶段，或路由器在 review/test 发现问题后自动触发。
 
-**Core principle:** Feedback is the signal router — it routes issues back to the correct stage for repair, not a dumping ground for complaints.
+**核心原则:** 反馈是信号路由器 —— 它将问题路由回正确的阶段进行修复，而非倾倒抱怨的垃圾场。
 
-## Path Contract
+## 路径约定
 
-This sub-skill is executed by the root router. It inherits:
+此子 skill 由根路由器执行。它继承：
 
-- `ROUTER_SKILL_DIR`: absolute path to the root `skill-lifecycle-router` package directory.
-- `TARGET_WORKSPACE`: absolute path to the workspace where lifecycle artifacts live.
-- `TARGET_SKILL_DIR`: absolute path to the skill being created or modified, when applicable.
+- `ROUTER_SKILL_DIR`：根 `skill-lifecycle-router` 包目录的绝对路径。
+- `TARGET_WORKSPACE`：生命周期产物所在工作区的绝对路径。
+- `TARGET_SKILL_DIR`：正在创建或修改的 skill 所在目录的绝对路径（如适用）。
 
-Do not resolve router-owned files from the current working directory. Do not use parent-relative docs paths for router-owned files or lifecycle artifacts.
+不要从当前工作目录解析路由器拥有的文件。不要对路由器拥有的文件或生命周期产物使用父级相对 docs 路径。
 
-## Entry
+## 入口
 
-- **User-initiated:** User selects feedback stage in router. Router asks: "For which skill? About which stage? What's the issue?"
-- **Auto-triggered:** Router detects non-empty Issues section in review/test report → invokes feedback to generate structured feedback note.
+- **用户发起：** 用户在路由器中选择 feedback 阶段。路由器询问："针对哪个 skill？关于哪个阶段？什么问题？"
+- **自动触发：** 路由器检测到 review/test 报告中问题章节非空 → 调用 feedback 生成结构化反馈记录。
 
-## Process
+## 流程
 
-### User-Initiated
-1. Router asks which skill this feedback is for
-2. Router asks which stage the issue targets (design / plan / task / test)
-3. User describes the issue
-4. Router assigns severity (Critical / Important / Minor) based on user description
-5. Write feedback note to `TARGET_WORKSPACE/docs/notes/<skill-name>-feedback.md`
+### 用户发起
+1. 路由器询问此反馈针对哪个 skill
+2. 路由器询问问题目标阶段（design / plan / task / test）
+3. 用户描述问题
+4. 路由器根据用户描述分配严重度（Critical / Important / Minor）
+5. 将反馈记录写入 `TARGET_WORKSPACE/docs/notes/<skill-name>-feedback.md`
 
-### Auto-Triggered
-1. Router passes review/test report to feedback sub-skill
-2. Extract each issue from the report's Issues section
-3. Format each issue per `ROUTER_SKILL_DIR/docs/constraints/feedback-note-constraints.md`
-4. Append (not overwrite) to `TARGET_WORKSPACE/docs/notes/<skill-name>-feedback.md`
+### 自动触发
+1. 路由器将 review/test 报告传递给 feedback 子 skill
+2. 从报告的问题章节中提取每个问题
+3. 按照 `ROUTER_SKILL_DIR/docs/constraints/feedback-note-constraints.md` 格式化每个问题
+4. 追加（非覆盖）到 `TARGET_WORKSPACE/docs/notes/<skill-name>-feedback.md`
 
-## Output Format
+## 输出格式
 
-Follow `ROUTER_SKILL_DIR/docs/constraints/feedback-note-constraints.md`:
+遵循 `ROUTER_SKILL_DIR/docs/constraints/feedback-note-constraints.md`：
 
 ```markdown
-# Feedback Note: <skill-name>
+# 反馈记录: <skill-name>
 
-## Issues
+## 问题
 
-### <Issue Title>
+### <问题标题>
 - **严重度:** Critical | Important | Minor
 - **来源:** review | test | self-check | user
 - **回流目标阶段:** design | plan | task | test
-- **描述:** <what was found and why it matters>
-- **文件:** <path:line if applicable>
+- **描述:** <发现了什么以及为什么重要>
+- **文件:** <path:line（如适用）>
 ```
 
-## Router Handoff
+## 路由器交接
 
-After feedback note is written, router presents:
-- Number of issues by severity
+反馈记录写入后，路由器展示：
+- 按严重度分类的问题数量
 - 问题回流到哪个阶段
 - "回到 <stage> 修，还是接受继续？"
 
-## Self-Check
+## 自检
 
-- [ ] Feedback note exists at `TARGET_WORKSPACE/docs/notes/<skill-name>-feedback.md`
+- [ ] 反馈记录存在于 `TARGET_WORKSPACE/docs/notes/<skill-name>-feedback.md`
 - [ ] 每条问题标注了严重度
 - [ ] 每条问题标注了回流目标阶段
 - [ ] 来源已标注
 
-## Output
+## 输出
 
-Feedback note ends with the self-check declaration:
+反馈记录以自检声明结尾：
 
 ```markdown
-## Self-Check
+## 自检
 - [x] 每条问题标注了严重度
 - [x] 每条问题标注了回流目标阶段
 - [x] 来源已标注

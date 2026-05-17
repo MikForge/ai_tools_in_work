@@ -1,67 +1,67 @@
 ---
 name: skill-lifecycle-test
-description: Lifecycle sub-skill — validate artifact format, completeness, and structure. Internal, invoked by skill-lifecycle-router.
+description: 生命周期子 skill —— 验证产物格式、完整性和结构。内部使用，由 skill-lifecycle-router 调用。
 disable-model-invocation: true
 ---
 
-# Skill Lifecycle — Test
+# Skill 生命周期 — 测试
 
-## Overview
+## 概述
 
-Validate the task stage output: check format, completeness, and structure against project conventions. Produce a test report with explicit pass/fail results.
+验证 task 阶段输出：检查格式、完整性和结构是否符合项目约定。生成包含明确通过/失败结果的测试报告。
 
-**Core principle:** Verify format, completeness, and structure. If all checks pass but output has visible issues, the verification boundary is insufficient — fail.
+**核心原则:** 验证格式、完整性和结构。如果所有检查通过但输出有明显问题，则验证边界不足 —— 判定失败。
 
-## Path Contract
+## 路径约定
 
-This sub-skill is executed by the root router. It inherits:
+此子 skill 由根路由器执行。它继承：
 
-- `ROUTER_SKILL_DIR`: absolute path to the root `skill-lifecycle-router` package directory.
-- `TARGET_WORKSPACE`: absolute path to the workspace where lifecycle artifacts live.
-- `TARGET_SKILL_DIR`: absolute path to the skill being created or modified, when applicable.
+- `ROUTER_SKILL_DIR`：根 `skill-lifecycle-router` 包目录的绝对路径。
+- `TARGET_WORKSPACE`：生命周期产物所在工作区的绝对路径。
+- `TARGET_SKILL_DIR`：正在创建或修改的 skill 所在目录的绝对路径（如适用）。
 
-Do not resolve router-owned files from the current working directory. Do not use parent-relative docs paths for router-owned files or lifecycle artifacts.
+不要从当前工作目录解析路由器拥有的文件。不要对路由器拥有的文件或生命周期产物使用父级相对 docs 路径。
 
-## Entry Condition
+## 入口条件
 
-Task output must exist. Router checks this before forwarding. If missing, return to task stage.
+Task 输出必须存在。路由器在转发前检查此项。若缺失，返回 task 阶段。
 
-## Process
+## 流程
 
-1. Identify the task output files (SKILL.md, scripts, templates)
-2. Run verification checks in three categories:
-   - **Format:** YAML frontmatter valid, markdown structure correct, code blocks have language tags
-   - **Completeness:** All referenced files exist, no broken paths, all required sections present
-   - **Structure:** Follows project skill conventions, directory layout matches patterns
-3. For each check, record: pass/fail, file:line if failed, expected vs actual
-4. Write test report to `TARGET_WORKSPACE/docs/test/<skill-name>-test-report.md`
-5. Run self-check before declaring completion
+1. 确定 task 输出文件（SKILL.md、脚本、模板）
+2. 按三个类别运行验证检查：
+   - **格式：** YAML frontmatter 有效、markdown 结构正确、代码块有语言标签
+   - **完整性：** 所有引用的文件存在、无断链、所有必需章节齐全
+   - **结构：** 遵循项目 skill 约定、目录布局匹配模式
+3. 对每个检查，记录：通过/失败、文件:行号（如果失败）、预期 vs 实际
+4. 将测试报告写入 `TARGET_WORKSPACE/docs/test/<skill-name>-test-report.md`
+5. 在宣告完成之前运行自检
 
-## Counter-Check (Test Effectiveness)
+## 反检（测试有效性）
 
-After all checks complete:
-- If ALL checks pass but the product has visible issues → **FAIL** — the verification boundary is insufficient. Note which issues were missed and return for redesign of verification.
-- If checks reveal failures → document them clearly and route to the appropriate stage via the router.
+所有检查完成后：
+- 如果所有检查通过但产物存在明显问题 → **失败** —— 验证边界不足。记录遗漏了哪些问题，并返回重新设计验证。
+- 如果检查揭示了失败项 → 清晰地记录它们，并通过路由器路由到对应阶段。
 
-## Self-Check
+## 自检
 
-- [ ] Test report exists at `TARGET_WORKSPACE/docs/test/<skill-name>-test-report.md`
-- [ ] Each check item has explicit pass/fail result
-- [ ] Failed items have file:line location and expected vs actual
-- [ ] Counter-check performed — if all passing, product quality confirmed independently
+- [ ] 测试报告存在于 `TARGET_WORKSPACE/docs/test/<skill-name>-test-report.md`
+- [ ] 每个检查项有明确的通过/失败结果
+- [ ] 失败项有文件:行号位置及预期 vs 实际
+- [ ] 反检已执行 —— 如果全部通过，独立确认了产物质量
 
-## Output
+## 输出
 
-Test report ends with the self-check declaration:
+测试报告以自检声明结尾：
 
-\`\`\`markdown
-## Self-Check
-- [x] Test report exists
-- [x] Pass/fail results explicit
-- [x] Failed items have location info
-- [x] Counter-check performed
-\`\`\`
+```markdown
+## 自检
+- [x] 测试报告存在
+- [x] 通过/失败结果明确
+- [x] 失败项有位置信息
+- [x] 反检已执行
+```
 
-## Reference
+## 参考
 
-Draw verification methodology from `writing-skills` validation standards. For counter-check, reference Harness Engineering practice: "AI-written tests passing buggy code → tests are invalid — force reconsideration of verification boundaries."
+从 `writing-skills` 验证标准中汲取验证方法论。对于反检，参考 Harness Engineering 实践："AI 编写的测试对有 bug 的代码通过 → 测试无效 —— 强制重新考虑验证边界。"
