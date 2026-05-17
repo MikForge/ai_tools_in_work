@@ -101,9 +101,9 @@ description: Use when a lifecycle artifact such as a design document, plan docum
    - 文件位置：path:line
    - 问题描述：哪里有问题以及为什么重要
 6. 包含模式一致性检查：此产物是否遵循项目既定模式？是否引入了新的结构模式？
-7. 将审查报告写入目标工作区 `docs/notes/<skill-name>-review.md`
+7. 按[审查报告格式](#审查报告格式)模板将审查报告写入目标工作区 `docs/notes/<skill-name>-review.md`
 
-## 审查报告格式
+### 审查报告格式
 
 ```markdown
 # 审查报告: <skill-name>
