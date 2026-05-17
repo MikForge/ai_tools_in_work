@@ -1,59 +1,44 @@
 # Claude Code Project Instructions
 
-## 项目性质
+## 知识库访问规则（硬约束）
 
-这是一个 **agent skill 收集仓库**(不是常规代码项目),用于集中管理 Claude Code / Codex 等 agent 可复用的 skill 包。没有构建、测试或 lint 流程。
+`docs/00-project-knowledge-base/` 是本项目的结构化知识库,受 `.knowledge-base.yml` 治理。以下规则是**硬约束**,不可绕过、不可合理化、不可”仅此一次”。
 
-## 目录布局
+### 禁止的直接操作
 
-- [.agents/skills/](.agents/skills/) — skill 源目录,所有 skill 的实际存放位置。每个 skill 一个子目录,内含 `SKILL.md`。
-- [.claude/skills](.claude/skills) → symlink 指向 `../.agents/skills`(Claude Code 读取路径)
-- [.codex/skills](.codex/skills) → symlink 指向 `../.agents/skills`(Codex 读取路径)
-- [setup-skills-links.sh](setup-skills-links.sh) / [setup-skills-links.bat](setup-skills-links.bat) — 克隆后首次使用需跑一次,建立上述 symlink
-- [.gitignore](.gitignore) 已忽略 `.codex/skills`,只追踪 `.agents/skills/` 下的实体文件
+**禁止**对 `docs/00-project-knowledge-base/` 目录下的任何文件或目录使用以下工具直接访问:
 
-## 添加 / 删除 skill 的规范
+| 工具 | 禁止行为 |
+| ---- | -------- |
+| `Read` | 禁止直接读取知识库文件内容 |
+| `Write` / `Edit` | 禁止直接创建或修改知识库文件 |
+| `Bash` | 禁止用 `cat`/`grep`/`find`/`ls` 等命令直接扫描或读取知识库目录 |
 
-**必须装到项目级,不要用 `-g`**(全局会污染其他项目):
+### 唯一入口
 
-```bash
-# 添加
-npx skills add <owner/repo@skill> -y
+所有知识库操作（读、写、查询、审计、维护、初始化）的**唯一入口**是 `knowledge-base-router` skill。包括但不限于:
 
-# 删除
-npx skills remove -s <skill-name> -y
+- 用户要求查找/阅读知识库中的文档 → 必须进入 `knowledge-base-router`
+- Agent 自发需要了解项目背景/约定 → 必须进入 `knowledge-base-router`
+- 需要保存分析结论到知识库 → 必须进入 `knowledge-base-router`
+- 检查知识库健康状态 → 必须进入 `knowledge-base-router`
 
-# 查找
-npx skills find <query>
+### 读写路径
 
-# 列出已装
-npx skills list
-```
+- **读取路径**: `knowledge-base-router` → Bootstrap Gate → `knowledge-base-context`（通过索引发现和读取文档）
+- **写入路径**: `knowledge-base-router` → Bootstrap Gate → `knowledge-base-author`（生成草稿）→ 用户确认 → `knowledge-base-publisher`（写入正文+同步索引）
+- **修复路径**: `knowledge-base-router` → Bootstrap Gate → `knowledge-base-auditor`（生成审计报告）→ 用户确认范围 → `knowledge-base-gardener`（执行修复）
 
-安装后 skill 会落在 `.agents/skills/<skill-name>/`(目录索引见 [.agents/skills/](.agents/skills/)),通过已有的 symlink 自动对 Claude Code / Codex 生效。
+### 状态阻断
 
-### 安装后必须更新索引
+- Bootstrap Gate 结果为 `Partial` 或 `Broken` 时,**不得**继续任何读写操作。
+- 必须先进入 `knowledge-base-auditor`,需要修复时再由 `knowledge-base-gardener` 在用户确认范围内处理。
+- `Empty` 状态时询问用户是否初始化,不得自动创建。
 
-**每次 `npx skills add` 成功后,必须往 [.agents/skills/README.md](.agents/skills/README.md) 追加一个 `##` 小节**,按字母序插入到已有小节之间,格式:
+### 禁止的捷径
 
-```markdown
-## <skill-name>
-
-- 来源:`owner/repo`
-- 安装:`npx skills add owner/repo@skill -y`
-- 用途:一句话(≤40 字),从 SKILL.md 的 `description` 意译
-- 链接:<https://skills.sh/owner/repo/skill>
-```
-
-删除 skill 时同步删掉对应小节。忘了就等于没装——README 是本仓库的唯一入口清单。
-
-## 工作约定
-
-- 新增 skill 前先查重:看 [.agents/skills/](.agents/skills/) 是否已存在同类能力
-- 评估 skill 质量:优先选 install 数高(1K+)、来源可信(`vercel-labs`、`anthropics` 等官方源)的
-- skill 目录结构由上游仓库决定,**不要手改** `SKILL.md`;要定制请在本仓库新建独立 skill
-- 自建 skill 用 `npx skills init <name>`,在 `.agents/skills/` 下生成骨架
-
-## 当前已收录 skill
-
-完整清单(含来源、安装命令、中文描述)见 [.agents/skills/README.md](.agents/skills/README.md)。
+- 禁止”先用 Read 看看有什么,需要时再走 router”——连目录扫描都必须通过 router
+- 禁止”先改正文、之后补索引”——正文与索引必须由 publisher 同步写入
+- 禁止”只手动更新索引”——索引更新必须走 publisher 流程
+- 禁止用 `Bash find`/`ls`/`grep` 扫描知识库目录来”了解一下有什么”——这等同于绕过索引系统
+- 禁止认为”用户只是问一个问题,不是正式的知识库请求”而跳过 router ——凡是答案在知识库文件中的,就是知识库请求
