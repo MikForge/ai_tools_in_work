@@ -13,4 +13,4 @@
 - [reference-claude-code-settings-comprehensive.md](reference-claude-code-settings-comprehensive.md): Claude Code settings.json 完整配置参考，50+ 配置键，覆盖权限、沙箱、hooks、模型、UI、Agent 等全部功能。
 - [reference-claude-code-sub-agents.md](reference-claude-code-sub-agents.md): Claude Code 子代理完整参考，内置代理、自定义代理 Markdown 格式、作用域、工具限制、记忆配置。
 - [reference-codex-tools-configuration.md](reference-codex-tools-configuration.md): Codex 本地工具、扩展点和配置类型的官方说明文档入口。
-- [reference-deepseek-tui-configuration.md](reference-deepseek-tui-configuration.md): DeepSeek TUI 配置与扩展参考，涵盖 config.toml、Hooks 系统（7 种事件/3 种 Sink）、Skills/MCP/Plugins 扩展机制，与 Claude Code Hooks 对比。
+- [deepseek-tui/README.md](deepseek-tui/README.md): DeepSeek TUI 参考索引，按模块拆分为配置系统、Hooks 系统、扩展机制、运行时四篇独立文档。
